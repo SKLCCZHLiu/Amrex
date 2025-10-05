@@ -1965,8 +1965,8 @@ void stream(int i, int j, int k, amrex::Array4<amrex::Real> const& fold, amrex::
         int xm = i - e[q][0];
         int ym = j - e[q][1];
         int zm = k - e[q][2];
-        //这里的设置需要跟main函数中的{AMREX_D_DECL(1, 0, 1)}的周期性设置相对应
-        if ((i >= 0) && (i <= hi[0]) && (j > 0) && (j < hi[1]) && (k >= 0) && (k <= hi[2])) {
+        // 这里的设置需要跟main函数中的{AMREX_D_DECL(1, 0, 1)}的周期性设置相对应
+        if ((i >= 0) && (i <= hi[0]) && (j >= 0) && (j <= hi[1]) && (k >= 0) && (k <= hi[2])) {
             fnew(i, j, k, q) = fold(xm, ym, zm, q);
         }
     }

@@ -783,8 +783,8 @@ void AmrCoreLBM::ComputeShear() {
 // 记录通道流在 x = NX/2 截面的时间平均速度廓线 \bar{u}(y)
 void AmrCoreLBM::RecordMeanVelocityProfile(int step) {
     // 仅在 50*FT ~ 100*FT 且每 1000 步采样
-    // if (!(step >= 50 * FT && step <= 100 * FT && step % 1000 == 0)) {
-    if (!(step >= 1000 && step <= 3000 && step % 1000 == 0)) {
+    if (!(step >= 50 * FT && step <= 100 * FT && step % 1000 == 0)) {
+    //if (!(step >= 1000 && step <= 3000 && step % 1000 == 0)) {
         return;
     }
 
@@ -884,7 +884,7 @@ void AmrCoreLBM::RecordMeanVelocityProfile(int step) {
     }
 
     // 仅在 100*FT 时刻（窗口末端）写一次最终平均文件
-    if (step == 3000 && ParallelDescriptor::IOProcessor()) {
+    if (step == 50 * FT && ParallelDescriptor::IOProcessor()) {
         const int nyh = mean_ny_half_;
         const int samples = std::max(1, mean_samples_);
         std::ofstream ofs("data/mean_velocity_profile_final.txt", std::ios::out);
