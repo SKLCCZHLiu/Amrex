@@ -641,7 +641,7 @@ void LagrangeParticleContainer::SaveVelocity(int lev, int step)
 
     if (ParallelDescriptor::MyProc() == ParallelDescriptor::IOProcessorNumber())
     {
-        std::string filename = "vel_" + std::to_string(id) + ".dat";
+        std::string filename = "data/vel_" + std::to_string(id) + ".dat";
         std::ofstream file(filename, std::ios::app);
 
         if (!file.is_open())
@@ -663,7 +663,7 @@ void LagrangeParticleContainer::SavePosition(int lev, int step)
 
     if (ParallelDescriptor::MyProc() == ParallelDescriptor::IOProcessorNumber())
     {
-        std::string filename = "pos_" + std::to_string(id) + ".dat";
+        std::string filename = "data/pos_" + std::to_string(id) + ".dat";
         std::ofstream file(filename, std::ios::app);
 
         if (!file.is_open())
@@ -714,7 +714,7 @@ void LagrangeParticleContainer::SaveFxy(int lev, int step)
 
     if (ParallelDescriptor::MyProc() == ParallelDescriptor::IOProcessorNumber())
     {
-        std::string filename = "CdCl_" + std::to_string(id) + ".dat";
+        std::string filename = "data/CdCl_" + std::to_string(id) + ".dat";
         std::ofstream file(filename, std::ios::app);
 
         if (!file.is_open())

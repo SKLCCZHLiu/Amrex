@@ -471,7 +471,7 @@ void AmrCoreLBM::WriteParticleFile(const int step, const amrex::Real time) {
 
 void AmrCoreLBM::WriteMultiParticleFile(const int step, const amrex::Real time) {
     if (ParallelDescriptor::MyProc() == ParallelDescriptor::IOProcessorNumber()) {
-        std::string filename = amrex::Concatenate("particle_data", step, 6) + ".dat";
+        std::string filename = "data/" + amrex::Concatenate("particle_data", step, 6) + ".dat";
 
         // 打开文件并检查是否成功
         std::ofstream file(filename);
@@ -887,7 +887,7 @@ void AmrCoreLBM::RecordMeanVelocityProfile(int step) {
     if (step == 3000 && ParallelDescriptor::IOProcessor()) {
         const int nyh = mean_ny_half_;
         const int samples = std::max(1, mean_samples_);
-        std::ofstream ofs("mean_velocity_profile_final.txt", std::ios::out);
+        std::ofstream ofs("data/mean_velocity_profile_final.txt", std::ios::out);
         for (int jj = 0; jj < nyh; ++jj) {
             const int j = jy0 + 1 + jj; // y=jy0+1 ~ jy0+ny_half
             Real y_phys = geom.ProbLo(1) + (j + 0.5) * dx[1];
@@ -1190,7 +1190,7 @@ void AmrCoreLBM::SaveParticlePosition(int lev, int step) {
 
 void AmrCoreLBM::SaveParticleDistance(int lev, int step) {
     if (ParallelDescriptor::MyProc() == ParallelDescriptor::IOProcessorNumber()) {
-        std::string filename = "dist.dat";
+        std::string filename = "data/dist.dat";
         std::ofstream file(filename, std::ios::app);
 
         if (!file.is_open()) {

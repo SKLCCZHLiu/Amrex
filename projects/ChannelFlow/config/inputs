@@ -14,7 +14,7 @@ amr.blocking_factor_x = 2 2 2 2
 amr.blocking_factor_y = 2 2 2 2
 amr.blocking_factor_z = 2 2 2 2
 
-amr.plot_file  = case_channelFlow_Ret180
+amr.plot_file  = data/case_channelFlow_Ret180
 amr.plot_int   = 100000
 amr.begin_plot = 15000
 
