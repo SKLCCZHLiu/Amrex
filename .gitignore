@@ -13,6 +13,7 @@
 *.out
 *.err
 Backtrace.*
+*.txt
 
 # Generated directories
 **/tmp_build_dir/
@@ -20,8 +21,7 @@ Backtrace.*
 **/plt*/
 
 # IDE/editor
-.vscode/
-*.code-workspace
+
 
 # Misc
 *.nfs*

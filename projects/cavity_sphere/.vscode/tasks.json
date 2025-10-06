@@ -1,0 +1,66 @@
+{
+    // VS Code 任务配置文件 - 用于AMReX LBM项目的编译和构建
+    // 提供三种编译方式：本地脚本编译、清理构建、远程SSH编译
+    // 使用方法：Ctrl+Shift+B 或 Ctrl+Shift+P -> Tasks: Run Task
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build AMReX Project",
+            "type": "shell",
+            "command": "./compile.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
+        },
+        {
+            "label": "Clean Build",
+            "type": "shell",
+            "command": "make",
+            "args": ["clean"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "SSH to Compute Node and Build",
+            "type": "shell",
+            "command": "ssh",
+            "args": [
+                "whshare-agent-1",
+                "cd /home/share/huazkjdxmrsgjzdsyshi/home/lijing/caiyimin/learnamerx/cavity_sphere && ./compile.sh"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        }
+    ]
+}

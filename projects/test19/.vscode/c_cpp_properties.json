@@ -1,0 +1,59 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}",
+                "${workspaceFolder}/**",
+                ".",
+                "./**",
+                "/home/HPCBase/compilers/cuda/12.1.0/include",
+                "/home/HPCBase/compilers/cuda/12.1.0/targets/sbsa-linux/include",
+                "/home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src/Base",
+                "/home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src/AmrCore",
+                "/home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src/Boundary",
+                "/home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src/Particle",
+                "/home/HPCBase/mpi/hmpi/1.2.0-huawei-sp1/include/openmpi",
+                "/home/HPCBase/mpi/hmpi/1.2.0-huawei-sp1/include/openmpi/opal/mca/hwloc/hwloc201/hwloc/include",
+                "/home/HPCBase/mpi/hmpi/1.2.0-huawei-sp1/include/openmpi/opal/mca/event/libevent2022/libevent",
+                "/home/HPCBase/mpi/hmpi/1.2.0-huawei-sp1/include/openmpi/opal/mca/event/libevent2022/libevent/include",
+                "/home/HPCBase/mpi/hmpi/1.2.0-huawei-sp1/include",
+                "/usr/include/c++/7.3.0",
+                "/usr/include/c++/7.3.0/aarch64-linux-gnu",
+                "/usr/include/c++/7.3.0/backward",
+                "/usr/local/include",
+                "/usr/include"
+            ],
+            "defines": [
+                "BL_USE_MPI",
+                "AMREX_USE_MPI", 
+                "AMREX_USE_GPU",
+                "AMREX_USE_CUDA",
+                "AMREX_DIMENSION=3",
+                "AMREX_SPACEDIM=3",
+                "AMREX_USE_PARTICLES",
+                "__GNUC__=10",
+                "__GNUC_MINOR__=3"
+            ],
+            "compilerPath": "/home/HPCBase/compilers/gcc/10.3.1/bin/g++",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-arm64",
+            "compilerArgs": [
+                "-std=gnu++17",
+                "-fopenmp"
+            ],
+            "browse": {
+                "path": [
+                    "${workspaceFolder}",
+                    ".",
+                    "/home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src/Base",
+                    "/home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src/AmrCore"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
+        }
+    ],
+    "version": 4
+}
