@@ -16,6 +16,7 @@ Backtrace.*
 *.txt
 
 # Generated directories
+**/data/
 **/tmp_build_dir/
 **/case_*/
 **/plt*/
