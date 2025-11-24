@@ -1,0 +1,10 @@
+{
+  "clangd.enabled": false,
+  "C_Cpp.intelliSenseEngine": "Default",
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/ChannelFlow/compile_commands.json",
+  "C_Cpp.errorSquiggles": "Enabled",
+  "editor.formatOnSave": true,
+  "files.associations": {
+    "*.H": "cpp"
+  }
+}

@@ -20,7 +20,8 @@ Backtrace.*
 **/tmp_build_dir/
 **/case_*/
 **/plt*/
-
+**/.cache/
+**/chk*/
 # IDE/editor
 
 

@@ -1,0 +1,27 @@
+CompileFlags:
+  # 指定编译数据库所在目录，避免 clangd 误用工作区其他项目的数据库
+  CompilationDatabase: config
+  # 回退/全局追加，保证即使个别 TU 未命中数据库也能解析 CUDA 装饰和 AMReX 头
+  Remove:
+    - "^-D__CUDA_ARCH__=.*"
+    - "^-D__CUDA_ARCH_LIST__=.*"
+  Add:
+    - -std=c++17
+    - -Wall
+    - -Wextra
+    - -Wno-unknown-cuda-version
+    - -Wno-c++11-narrowing
+    - -DAMREX_SPACEDIM=3
+    - -DAMREX_USE_GPU
+    - -DAMREX_USE_CUDA
+    # 在非 CUDA 解析模式下将 CUDA 装饰清空以通过语义分析
+    - -D__host__=
+    - -D__device__=
+    - -D__global__=
+    - -D__constant__=
+    - -D__shared__=
+    # 正确的 CUDA 12.1 头文件路径（集群环境）
+    - -isystem
+    - /home/HPCBase/compilers/cuda/12.1.0/targets/sbsa-linux/include
+    - -isystem
+    - /home/HPCBase/compilers/cuda/12.1.0/extras/CUPTI/include

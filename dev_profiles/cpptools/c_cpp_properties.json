@@ -1,0 +1,32 @@
+{
+  "configurations": [
+    {
+      "name": "Linux",
+      "includePath": [
+        "${workspaceFolder}",
+        "${workspaceFolder}/**",
+        "/home/HPCBase/compilers/cuda/12.1.0/include",
+        "/home/HPCBase/compilers/cuda/12.1.0/targets/sbsa-linux/include",
+        "/home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src/Base",
+        "/home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src/AmrCore",
+        "/home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src/Boundary",
+        "/home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src/Particle"
+      ],
+      "defines": [
+        "BL_USE_MPI",
+        "AMREX_USE_MPI",
+        "AMREX_USE_GPU",
+        "AMREX_USE_CUDA",
+        "AMREX_DIMENSION=3",
+        "AMREX_SPACEDIM=3",
+        "AMREX_USE_PARTICLES"
+      ],
+      "compilerPath": "/home/HPCBase/compilers/gcc/10.3.1/bin/g++",
+      "cStandard": "c17",
+      "cppStandard": "gnu++17",
+      "intelliSenseMode": "linux-gcc-arm64",
+      "compileCommands": "${workspaceFolder}/compile_commands.json"
+    }
+  ],
+  "version": 4
+}

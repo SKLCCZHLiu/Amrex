@@ -1,0 +1,6 @@
+{
+  "C_Cpp.intelliSenseEngine": "Default",
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/ChannelFlow/compile_commands.json",
+  "C_Cpp.errorSquiggles": "Enabled",
+  "clangd.enabled": false
+}

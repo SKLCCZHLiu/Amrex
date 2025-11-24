@@ -1,0 +1,24 @@
+{
+  "clangd.enabled": true,
+  "clangd.arguments": [
+    "--background-index",
+    "--all-scopes-completion",
+    "--clang-tidy=false",
+    "--completion-style=detailed",
+    "--header-insertion=never",
+    "--query-driver=*/gcc,*/g++,*/clang,*/clang++"
+  ],
+  "C_Cpp.intelliSenseEngine": "Disabled",
+  "C_Cpp.errorSquiggles": "Disabled",
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/ChannelFlow/compile_commands.json",
+  "editor.formatOnSave": true,
+  "files.associations": {
+    "*.H": "cpp"
+  },
+  "[cpp]": {
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+  },
+  "[c]": {
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+  }
+}

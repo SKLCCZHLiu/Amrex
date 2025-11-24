@@ -1,0 +1,33 @@
+# 复制到仓库根并改名为 .clangd
+CompileFlags:
+  CompilationDatabase: ChannelFlow
+  Remove:
+    - "^-D__CUDA_ARCH__=.*"
+    - "^-D__CUDA_ARCH_LIST__=.*"
+  Add:
+    - -std=c++17
+    - -Wall
+    - -Wextra
+    - -Wno-unknown-cuda-version
+    - -Wno-c++11-narrowing
+    - -DAMREX_SPACEDIM=3
+    - -D__host__=
+    - -D__device__=
+    - -D__global__=
+    - -D__constant__=
+    - -D__shared__=
+    - -isystem
+    - /home/HPCBase/compilers/cuda/12.1.0/targets/sbsa-linux/include
+    - -isystem
+    - /home/HPCBase/compilers/cuda/12.1.0/extras/CUPTI/include
+Diagnostics:
+  ClangTidy: {}
+  Suppress:
+    - unknown_typename
+    - undeclared_var_use_suggest
+    - fatal_too_many_errors
+    - ovl_no_viable_member_function_in_call
+    - member_function_call_bad_type
+    - template_arg_must_be_type
+Index:
+  Background: Build

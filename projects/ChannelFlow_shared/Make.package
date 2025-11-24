@@ -1,0 +1,3 @@
+# ChannelFlow_shared relies on config/Make.package for build definitions.
+# This placeholder exists so tooling expecting a Make.package at the project
+# root can detect the target. Shared LBM sources live in shared/lbm-core.

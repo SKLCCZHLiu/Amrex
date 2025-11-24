@@ -3,19 +3,19 @@
 #     whichever comes first
 # *****************************************************************
 max_step  = 8000000
-stop_time = 2500000.0
+stop_time = 5000000.0
 
 amr.regrid_int  = -1
 
 amr.grid_eff          = 0.7 
 amr.n_error_buf       = 2 2 2 2 2
-amr.max_grid_size     = 32 32 32 32
+amr.max_grid_size     = 128 32 32 32
 amr.blocking_factor_x = 2 2 2 2
 amr.blocking_factor_y = 2 2 2 2
 amr.blocking_factor_z = 2 2 2 2
 
 amr.plot_file  = data/case_channelFlow_Ret180
-amr.plot_int   = 100000
+amr.plot_int   = 50000
 amr.begin_plot = 0
 
 lbm.err = 0.6 0.8 1.0 1.2 1.4 1.5 1.6 1.7

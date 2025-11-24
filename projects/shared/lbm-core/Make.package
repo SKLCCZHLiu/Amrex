@@ -1,0 +1,18 @@
+LBM_CORE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
+LBM_CORE_SRC_NAMES += AmrCoreLBM.cpp \
+			  LagrangeParticleContainer.cpp \
+			  AuxiliaryPointContainer.cpp
+
+LBM_CORE_HDR_NAMES += AmrCoreLBM.H \
+			  LagrangeParticleContainer.H \
+			  AuxiliaryPointContainer.H \
+			  Kernels.H \
+			  D3Q19.H \
+			  InitParticles.H
+
+LBM_CORE_SRCS += $(addprefix $(LBM_CORE_DIR),$(LBM_CORE_SRC_NAMES))
+
+LBM_CORE_HDRS += $(addprefix $(LBM_CORE_DIR),$(LBM_CORE_HDR_NAMES))
+
+LBM_CORE_INCLUDE_DIRS += $(LBM_CORE_DIR)

@@ -1,0 +1,41 @@
+# *****************************************************************
+# Run until nsteps == max_step or time == stop_time,
+#     whichever comes first
+# *****************************************************************
+max_step  = 10000
+stop_time = 10000.0
+
+amr.regrid_int  = 10
+
+amr.grid_eff          = 0.7 
+amr.n_error_buf       = 0 0 0 0
+amr.max_grid_size     = 32 16 16 16
+amr.blocking_factor_x = 16
+amr.blocking_factor_y = 16
+amr.blocking_factor_z = 16
+
+amr.plot_file  = lid_lev2_Re10000_
+amr.plot_int   = 10000
+
+lbm.err = 0.6 0.8 1.0 1.2
+
+# *****************************************************************
+# mesh setting
+#
+# *****************************************************************
+# geometry.prob_lo     =  0.0  0.0  0.0
+# geometry.prob_hi     =  2.0  1.0  1.0
+# geometry.is_periodic =  0    0    0
+
+# amr.n_cell           =  64 32 32
+# amr.max_level        =  0
+
+# amr.v                =  1     
+# amr.ref_ratio        =  2 2 2 2 
+
+# amr.blocking_factor_x = 8
+# amr.blocking_factor_y = 8
+# amr.blocking_factor_z = 8
+# *****************************************************************
+# Particles
+# *****************************************************************

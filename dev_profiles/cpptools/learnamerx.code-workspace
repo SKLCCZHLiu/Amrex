@@ -1,0 +1,108 @@
+{
+    // cpptools 方案 workspace
+    "folders": [
+        {
+            "name": "ChannelFlow",
+            "path": "ChannelFlow"
+        },
+        {
+            "name": "workspace_root",
+            "path": "."
+        },
+        {
+            "path": "../../../../../../huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src"
+        }
+    ],
+    "settings": {
+        "C_Cpp.intelliSenseEngine": "default",
+        "C_Cpp.errorSquiggles": "enabled",
+        // 统一排除海量结果/输出目录以加速 IntelliSense
+        "files.watcherExclude": {
+            "**/.git/**": false,
+            "**/tmp_build_dir/**": true,
+            "**/case_*/**": true,
+            "**/plt*/**": true,
+            "**/Level_*/**": true,
+            "**/*.ex": true,
+            "**/*.log": true,
+            "**/*.zip": true
+        },
+        "search.exclude": {
+            // 取消对 .git 的搜索排除，允许在全局搜索中匹配到仓库内部文件（谨慎：搜索结果可能很多）
+            "**/.git": true,
+            "**/tmp_build_dir": true,
+            "**/case_*": true,
+            "**/plt*": true,
+            "**/Level_*": true,
+            "**/*.ex": true,
+            "**/*.log": true,
+            "**/*.zip": true
+        },
+        // Explorer 显式允许显示 .git（确保不被其它层级设置覆盖）
+        "files.exclude": {
+            "**/.git": false
+        },
+        // C++ 分析限制 - 基于上面的配置自动排除目录
+        "C_Cpp.files.exclude": {
+            "test19/**": true,
+            "Cavity2D/**": true,
+            "Cavity2D_revision/**": true,
+            "Cavity3D/**": true,
+            "Cavity3D_revision/**": true,
+            "HelloWord_C/**": true,
+            "Poiseuille_3D/**": true,
+            "cavity_sphere_learning/**": true
+        },
+    // 直接使用 compile_commands.json，不依赖 CMake Tools provider
+    // "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+        "C_Cpp.formatting": "clangFormat",
+        "C_Cpp.default.compileCommands": "${workspaceFolder:workspace_root}/compile_commands.json",
+        "C_Cpp.default.browse.path": [
+            "${workspaceFolder:workspace_root}/ChannelFlow",
+            "/home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src",
+            "/home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src/Base",
+            "/home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src/AmrCore",
+            "/home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src/Boundary",
+            "/home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src/Particle"
+        ],
+        "C_Cpp.default.browse.databaseFilename": "${workspaceFolder:workspace_root}/.vscode/browse.vc.db",
+        "C_Cpp.default.browse.limitSymbolsToIncludedHeaders": false,
+        // 如需专用格式化，可改为 clang-format 扩展或保持 VSCode 默认
+        "[cpp]": {
+            "editor.defaultFormatter": "ms-vscode.cpptools"
+        },
+        "[c]": {
+            "editor.defaultFormatter": "ms-vscode.cpptools"
+        },
+        "[cuda-cpp]": {
+            "editor.defaultFormatter": "ms-vscode.cpptools"
+        },
+        "files.associations": {
+            "*.H": "cpp",
+            "*.cu": "cuda-cpp",
+            "*.cuh": "cuda-cpp",
+            "*.mcr": "shellscript",
+            "inputs": "ini",
+            "__hash_table": "cpp",
+            "__split_buffer": "cpp",
+            "__tree": "cpp",
+            "atomic": "cpp",
+            "deque": "cpp",
+            "filesystem": "cpp",
+            "ios": "cpp",
+            "list": "cpp",
+            "map": "cpp",
+            "set": "cpp",
+            "string": "cpp",
+            "system_error": "cpp",
+            "unordered_map": "cpp",
+            "unordered_set": "cpp",
+            "vector": "cpp",
+            "random": "cpp",
+            "__locale": "cpp",
+            "__string": "cpp",
+            "regex": "cpp",
+            "string_view": "cpp"
+        }
+    }
+}

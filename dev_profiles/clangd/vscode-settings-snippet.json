@@ -1,0 +1,12 @@
+{
+  "clangd.arguments": [
+    "--background-index",
+    "--all-scopes-completion",
+    "--clang-tidy=false",
+    "--completion-style=detailed",
+    "--header-insertion=never",
+    "--query-driver=*/gcc,*/g++,*/clang,*/clang++"
+  ],
+  "C_Cpp.intelliSenseEngine": "Disabled",
+  "C_Cpp.formatting": "Disabled"
+}

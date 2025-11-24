@@ -1,0 +1,12 @@
+CompileFlags:
+  # 指定编译数据库所在目录，避免 clangd 误用工作区其他项目的数据库
+  CompilationDatabase: config
+  # 最低限度的回退选项（当某源文件暂时没有条目时）
+  Add: [-std=c++17]
+
+# 可按需启用更细设置（示例）
+# Diagnostics:
+#   MissingIncludes: Strict
+#   ClangTidy:
+#     Add: modernize-*,performance-*
+#     Remove: readability-*

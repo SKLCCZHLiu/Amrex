@@ -34,58 +34,30 @@ int main(int argc, char* argv[]) {
             pp.query("begin_plot", begin_plot);
         }
 
-        // ===================== 读取 inputs 中的 blocking_factor 覆盖默认值 =====================
-        IntVect bf_components(AMREX_D_DECL(8, 8, 8));
-        {
-            ParmParse pp("amr");
-
-            Vector<int> bf_all;
-            if (pp.countval("blocking_factor") > 0) {
-                pp.getarr("blocking_factor", bf_all);
-                if (!bf_all.empty()) {
-                    bf_components[0] = bf_all[0];
-                    if (bf_all.size() > 1)
-                        bf_components[1] = bf_all[1];
-                    if (bf_all.size() > 2)
-                        bf_components[2] = bf_all[2];
-                }
-            }
-
-            Vector<int> tmp;
-            if (pp.countval("blocking_factor_x") > 0) {
-                pp.getarr("blocking_factor_x", tmp);
-                if (!tmp.empty())
-                    bf_components[0] = tmp[0];
-            }
-            if (pp.countval("blocking_factor_y") > 0) {
-                tmp.clear();
-                pp.getarr("blocking_factor_y", tmp);
-                if (!tmp.empty())
-                    bf_components[1] = tmp[0];
-            }
-            if (pp.countval("blocking_factor_z") > 0) {
-                tmp.clear();
-                pp.getarr("blocking_factor_z", tmp);
-                if (!tmp.empty())
-                    bf_components[2] = tmp[0];
-            }
-        }
-
-        // ==================================================================================
+        // 打印本次运行的关键配置（只在 I/O 进程打印）
+        amrex::Print() << "\n[RunConfig]\n"
+                       << "  max_step      = " << max_step << "\n"
+                       << "  stop_time     = " << stop_time << "\n"
+                       << "  ReB           = " << ReB << "\n"
+                       << "  Uc            = " << Uc << "\n"
+                       << "  mv_0          = " << mv_0 << "\n"
+                       << "  tau_0         = " << tau_0 << "\n"
+                       << "  Ut            = " << Ut << "\n"
+                       << "  dt_0          = " << dt_0 << "\n"
+                       << "  FT            = " << static_cast<amrex::Real>(FT) << "\n";
 
         amrex::Geometry geom(
             amrex::Box({AMREX_D_DECL(0, 0, 0)}, {AMREX_D_DECL(NX - 1, NY - 1, NZ - 1)}),
             amrex::RealBox({AMREX_D_DECL(0., 0., 0.)}, {AMREX_D_DECL(nx, ny, nz)}),
-            amrex::CoordSys::cartesian,
-            {AMREX_D_DECL(1, 0, 1)});
+            amrex::CoordSys::cartesian, {AMREX_D_DECL(1, 0, 1)});
         // AMREX_D_DECL修改了之后,stream函数也需要做出相应的修改,主要是判断是否去等号
         amrex::AmrInfo info{
             1,             // verbose
             max_ref_level, // max_level
             amrex::Vector<amrex::IntVect>{(size_t)max_ref_level + 1, {AMREX_D_DECL(2, 2, 2)}},
-            amrex::Vector<amrex::IntVect>{(size_t)max_ref_level + 1, bf_components},
+            amrex::Vector<amrex::IntVect>{(size_t)max_ref_level + 1, {AMREX_D_DECL(2, 2, 2)}},
             amrex::Vector<amrex::IntVect>{(size_t)max_ref_level + 1, {AMREX_D_DECL(128, 128, 128)}}};
-
+        // 这里存在一个机制,默认设置的blocking_factor先会被校验,成功了之后才会被input中的设置覆盖,所以设置为(2, 2, 2)以便于最大程度通过校验.
         amrex::Real cur_time = 0.0;
 
         AmrCoreLBM lid(geom, info);
