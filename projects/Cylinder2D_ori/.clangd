@@ -1,0 +1,93 @@
+###############################################################################
+# Unified clangd configuration (merged & optimized)
+# 目标：
+#  - 保证在无（或部分缺失） compile_commands.json 时仍可基本解析
+#  - 减少 CUDA 相关伪诊断 & AMReX 大工程初次索引的失败跳转
+#  - 兼容后续切换脚本自动覆盖
+###############################################################################
+
+CompileFlags:
+  # 主数据库位置（根目录）。若将来放入 build/ 可改为 build
+  CompilationDatabase: config
+
+  # Remove: 去除不需要或干扰项（示例：跨架构 32 位标志、潜在注入）
+  Remove: 
+    - "^-D__CUDA_ARCH__=.*"
+    - "^-D__CUDA_ARCH_LIST__=.*"
+
+  # Add: 补充基础标准、警告、宏与 include 路径。数据库存在时仅作为兜底。
+  Add:
+    # 基础语言/警告
+    - -std=c++17
+    - -Wall
+    - -Wextra
+    - -Wno-unused-parameter
+    - -Wno-unused-variable
+    - -Wno-unknown-cuda-version
+    # AMReX 关键编译期宏（若数据库缺席时保持结构声明完整）
+    - -DAMREX_SPACEDIM=3
+    - -DAMREX_USE_GPU
+    - -DAMREX_USE_CUDA
+    # CUDA host/device 装饰在纯语义分析中置空，减少噪声
+    - -D__host__=
+    - -D__device__=
+    - -D__global__=
+    - -D__constant__=
+    - -D__shared__=
+    # Include: AMReX 主体
+    - -I /home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src
+    - -I /home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src/Base
+    - -I /home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src/Base/Parser
+    - -I /home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src/AmrCore
+    - -I /home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src/Boundary
+    - -I /home/huazkjdxmrsgjzdsyshi/whcs-share18/wangyan/amrex-23.09/Src/Particle
+    # CUDA / 设备相关头
+    - -isystem
+    - /home/HPCBase/compilers/cuda/12.1.0/targets/sbsa-linux/include
+    - -isystem
+    - /home/HPCBase/compilers/cuda/12.1.0/extras/CUPTI/include
+
+  # 若未来你引入单独 build 目录 + CMake，可减少 Add 列表，仅保留宏与少量必要路径
+
+# 索引与性能（Build 模式：依据数据库还原真实编译指令；若缺失则退化用 Add 列表）
+Index:
+  Background: Build
+  StandardLibrary: Yes
+
+Diagnostics:
+  # clang-tidy 已在启动参数中 --clang-tidy=false 关闭；这里维持空配置
+  ClangTidy: {}
+  # Suppress: 仅保留确认为“索引噪声”或 CUDA stub 造成的假阳性；
+  # 若后续希望恢复更严格语义，可逐步移除。
+  Suppress:
+    - unknown_typename
+    - undeclared_var_use_suggest
+    - fatal_too_many_errors
+    # 可选：若希望看到真实重载失败原因，删除下面这一行
+    - ovl_no_viable_member_function_in_call
+    # 新增：针对当前截图中的几个明显误报（AMReX 解析残缺或宏展开次序导致）
+    - member_function_call_bad_type        # “Cannot initialize object parameter ...” 级联误报
+    - template_arg_must_be_type            # 来自 AMReX_Vector.H 的首个级联触发点
+
+# 头文件补全策略
+Completion:
+  AllScopes: true
+
+InlayHints:
+  Enabled: Yes
+  BlockEnd: Yes
+  ParameterNames: Yes
+
+Hover:
+  ShowAKA: Yes
+
+# 路径映射（可按需补充）
+# PathMappings:
+#   - Mount: /home/remote
+#     Local: /mnt/work
+
+# 说明：
+# 1. compile_commands.json 存在时：真实命令优先；本文件 Add 仅兜底补充宏/路径。
+# 2. 跳转不到定义常见原因：数据库缺少该文件 / 索引未完成 / 路径大小写或符号链接不一致。
+# 3. 可临时在 VSCode workspace 的 clangd.arguments 中增加 --log=verbose 进行排查。
+# 4. 修改此文件后：Clangd: Restart language server 以强制重载。

@@ -19,8 +19,7 @@ using namespace amrex;
 
 template <class T>
 amrex::Gpu::DeviceVector<T>
-convertToDeviceVector(amrex::Vector<T> v)
-{
+convertToDeviceVector(amrex::Vector<T> v) {
     int ncomp = v.size();
     amrex::Gpu::DeviceVector<T> v_d(ncomp);
 #ifdef AMREX_USE_GPU
@@ -34,8 +33,8 @@ convertToDeviceVector(amrex::Vector<T> v)
 //********************************************************************//
 //                           constructor                              //
 //********************************************************************//
-AmrCoreLBM::AmrCoreLBM(amrex::Geometry const &level_0_geom, amrex::AmrInfo const &amr_info) : AmrCore(level_0_geom, amr_info)
-{
+AmrCoreLBM::AmrCoreLBM(amrex::Geometry const& level_0_geom, amrex::AmrInfo const& amr_info)
+    : AmrCore(level_0_geom, amr_info) {
     ReadParameters();
 
     int nlevs_max = max_level + 1;
@@ -52,8 +51,7 @@ AmrCoreLBM::AmrCoreLBM(amrex::Geometry const &level_0_geom, amrex::AmrInfo const
     tau.resize(nlevs_max);
     tau[0] = tau_0;
 
-    for (int lev = 1; lev <= max_level; ++lev)
-    {
+    for (int lev = 1; lev <= max_level; ++lev) {
         tau[lev] = 2 * (tau[lev - 1] - 0.5) + 0.5;
     }
 
@@ -62,10 +60,8 @@ AmrCoreLBM::AmrCoreLBM(amrex::Geometry const &level_0_geom, amrex::AmrInfo const
 
     bcs.resize(Q);
 
-    for (int idim = 0; idim < AMREX_SPACEDIM; idim++)
-    {
-        for (int comp = 0; comp < Q; ++comp)
-        {
+    for (int idim = 0; idim < AMREX_SPACEDIM; idim++) {
+        for (int comp = 0; comp < Q; ++comp) {
             bcs[comp].setLo(idim, bc_lo[idim]);
             bcs[comp].setHi(idim, bc_hi[idim]);
         }
@@ -87,12 +83,10 @@ AmrCoreLBM::AmrCoreLBM(amrex::Geometry const &level_0_geom, amrex::AmrInfo const
     // 表面压力系数容器
     particlesCp.resize(particle_num);
 
-    for (int lev = 0; lev <= max_level; lev++)
-    {
+    for (int lev = 0; lev <= max_level; lev++) {
         amrex::Real dx = Geom(lev).CellSizeArray()[0];
 
-        for (int idim = 0; idim < AMREX_SPACEDIM; idim++)
-        {
+        for (int idim = 0; idim < AMREX_SPACEDIM; idim++) {
             static_lo[lev][idim] = 0 + (8); // 边界加密
             static_hi[lev][idim] = Geom(lev).Domain().length(idim) - (8);
         }
@@ -158,35 +152,29 @@ AmrCoreLBM::AmrCoreLBM(amrex::Geometry const &level_0_geom, amrex::AmrInfo const
     }
 }
 
-AmrCoreLBM::AmrCoreLBM()
-{
+AmrCoreLBM::AmrCoreLBM() {
 }
 AmrCoreLBM::~AmrCoreLBM() = default;
 
 //********************************************************************//
 //                           help function                            //
 //********************************************************************//
-void AmrCoreLBM::PrintMeshInfo()
-{
-    if (ParallelDescriptor::IOProcessor())
-    {
+void AmrCoreLBM::PrintMeshInfo() {
+    if (ParallelDescriptor::IOProcessor()) {
         amrex::Print() << "╔════════════════════════════════════════════════════════╗" << std::endl;
         amrex::Print() << "║               Mesh Information                         ║" << std::endl;
         amrex::Print() << "╚════════════════════════════════════════════════════════╝" << std::endl;
 
         printGridSummary(amrex::OutStream(), 0, finest_level);
-        for (int i = 0; i <= finest_level; ++i)
-        {
+        for (int i = 0; i <= finest_level; ++i) {
             amrex::Print() << std::setw(15) << std::left << "  blocking_factor[" << i << "]"
                            << std::setw(10) << std::right << blocking_factor[i] << std::endl;
         }
-        for (int i = 0; i <= finest_level; ++i)
-        {
+        for (int i = 0; i <= finest_level; ++i) {
             amrex::Print() << std::setw(15) << std::left << "  max_grid_size[" << i << "]  "
                            << std::setw(10) << std::right << max_grid_size[i] << std::endl;
         }
-        for (int i = 0; i <= finest_level; ++i)
-        {
+        for (int i = 0; i <= finest_level; ++i) {
             amrex::Print() << std::setw(15) << std::left << "  n_error_buf[" << i << "]    "
                            << std::setw(10) << std::right << n_error_buf[i] << std::endl;
         }
@@ -195,8 +183,7 @@ void AmrCoreLBM::PrintMeshInfo()
         amrex::Print() << std::endl;
     }
 }
-void AmrCoreLBM::PrintLbmParm()
-{
+void AmrCoreLBM::PrintLbmParm() {
     amrex::Print() << "╔════════════════════════════════════════════════════════╗" << std::endl;
     amrex::Print() << "║               LBM Parameters                           ║" << std::endl;
     amrex::Print() << "╚════════════════════════════════════════════════════════╝" << std::endl;
@@ -212,16 +199,14 @@ void AmrCoreLBM::PrintLbmParm()
     amrex::Print() << std::setw(15) << std::left << "  Ma     =" << std::setw(10) << std::right << Ma << std::endl;
     amrex::Print() << std::setw(15) << std::left << "  U0     =" << std::setw(10) << std::right << Uc << std::endl;
 
-    for (int lev = 0; lev <= finest_level; lev++)
-    {
+    for (int lev = 0; lev <= finest_level; lev++) {
         amrex::Print() << std::setw(15) << std::left << "  tau    =" << std::setw(10) << std::right << tau[lev] << std::endl;
     }
 
     amrex::Print() << "╚════════════════════════════════════════════════════════╝" << std::endl;
     amrex::Print() << std::endl;
 }
-void AmrCoreLBM::ReadParameters()
-{
+void AmrCoreLBM::ReadParameters() {
     {
         ParmParse pp("amr");
         pp.query("plot_file", plot_file);
@@ -229,52 +214,43 @@ void AmrCoreLBM::ReadParameters()
 
         // Read in the n_error_buf
         int cnt = pp.countval("n_error_buf");
-        if (cnt > 0)
-        {
+        if (cnt > 0) {
             Vector<int> neb;
             pp.getarr("n_error_buf", neb);
             int n = std::min(cnt, max_level + 1);
-            for (int i = 0; i < n; ++i)
-            {
+            for (int i = 0; i < n; ++i) {
                 n_error_buf[i] = IntVect(neb[i]);
             }
-            for (int i = n; i <= max_level; ++i)
-            {
+            for (int i = n; i <= max_level; ++i) {
                 n_error_buf[i] = IntVect(neb[cnt - 1]);
             }
         }
 
         cnt = pp.countval("n_error_buf_x");
-        if (cnt > 0)
-        {
+        if (cnt > 0) {
             int idim = 0;
             Vector<int> neb;
             pp.getarr("n_error_buf_x", neb);
             int n = std::min(cnt, max_level + 1);
-            for (int i = 0; i < n; ++i)
-            {
+            for (int i = 0; i < n; ++i) {
                 n_error_buf[i][idim] = neb[i];
             }
-            for (int i = n; i <= max_level; ++i)
-            {
+            for (int i = n; i <= max_level; ++i) {
                 n_error_buf[i][idim] = neb[n - 1];
             }
         }
 
 #if (AMREX_SPACEDIM > 1)
         cnt = pp.countval("n_error_buf_y");
-        if (cnt > 0)
-        {
+        if (cnt > 0) {
             int idim = 1;
             Vector<int> neb;
             pp.getarr("n_error_buf_y", neb);
             int n = std::min(cnt, max_level + 1);
-            for (int i = 0; i < n; ++i)
-            {
+            for (int i = 0; i < n; ++i) {
                 n_error_buf[i][idim] = neb[i];
             }
-            for (int i = n; i <= max_level; ++i)
-            {
+            for (int i = n; i <= max_level; ++i) {
                 n_error_buf[i][idim] = neb[n - 1];
             }
         }
@@ -282,18 +258,15 @@ void AmrCoreLBM::ReadParameters()
 
 #if (AMREX_SPACEDIM == 3)
         cnt = pp.countval("n_error_buf_z");
-        if (cnt > 0)
-        {
+        if (cnt > 0) {
             int idim = 2;
             Vector<int> neb;
             pp.getarr("n_error_buf_z", neb);
             int n = std::min(cnt, max_level + 1);
-            for (int i = 0; i < n; ++i)
-            {
+            for (int i = 0; i < n; ++i) {
                 n_error_buf[i][idim] = neb[i];
             }
-            for (int i = n; i <= max_level; ++i)
-            {
+            for (int i = n; i <= max_level; ++i) {
                 n_error_buf[i][idim] = neb[n - 1];
             }
         }
@@ -301,8 +274,7 @@ void AmrCoreLBM::ReadParameters()
 
         // Read in the max_grid_size
         cnt = pp.countval("max_grid_size");
-        if (cnt > 0)
-        {
+        if (cnt > 0) {
             Vector<int> mgs;
             pp.getarr("max_grid_size", mgs);
             int last_mgs = mgs.back();
@@ -311,36 +283,30 @@ void AmrCoreLBM::ReadParameters()
         }
 
         cnt = pp.countval("max_grid_size_x");
-        if (cnt > 0)
-        {
+        if (cnt > 0) {
             int idim = 0;
             Vector<int> mgs;
             pp.getarr("max_grid_size_x", mgs);
             int n = std::min(cnt, max_level + 1);
-            for (int i = 0; i < n; ++i)
-            {
+            for (int i = 0; i < n; ++i) {
                 max_grid_size[i][idim] = mgs[i];
             }
-            for (int i = n; i <= max_level; ++i)
-            {
+            for (int i = n; i <= max_level; ++i) {
                 max_grid_size[i][idim] = mgs[n - 1];
             }
         }
 
 #if (AMREX_SPACEDIM > 1)
         cnt = pp.countval("max_grid_size_y");
-        if (cnt > 0)
-        {
+        if (cnt > 0) {
             int idim = 1;
             Vector<int> mgs;
             pp.getarr("max_grid_size_y", mgs);
             int n = std::min(cnt, max_level + 1);
-            for (int i = 0; i < n; ++i)
-            {
+            for (int i = 0; i < n; ++i) {
                 max_grid_size[i][idim] = mgs[i];
             }
-            for (int i = n; i <= max_level; ++i)
-            {
+            for (int i = n; i <= max_level; ++i) {
                 max_grid_size[i][idim] = mgs[n - 1];
             }
         }
@@ -348,18 +314,15 @@ void AmrCoreLBM::ReadParameters()
 
 #if (AMREX_SPACEDIM == 3)
         cnt = pp.countval("max_grid_size_z");
-        if (cnt > 0)
-        {
+        if (cnt > 0) {
             int idim = 2;
             Vector<int> mgs;
             pp.getarr("max_grid_size_z", mgs);
             int n = std::min(cnt, max_level + 1);
-            for (int i = 0; i < n; ++i)
-            {
+            for (int i = 0; i < n; ++i) {
                 max_grid_size[i][idim] = mgs[i];
             }
-            for (int i = n; i <= max_level; ++i)
-            {
+            for (int i = n; i <= max_level; ++i) {
                 max_grid_size[i][idim] = mgs[n - 1];
             }
         }
@@ -367,8 +330,7 @@ void AmrCoreLBM::ReadParameters()
 
         // Read in the blocking_factors
         cnt = pp.countval("blocking_factor");
-        if (cnt > 0)
-        {
+        if (cnt > 0) {
             Vector<int> bf;
             pp.getarr("blocking_factor", bf);
             int last_bf = bf.back();
@@ -377,36 +339,30 @@ void AmrCoreLBM::ReadParameters()
         }
 
         cnt = pp.countval("blocking_factor_x");
-        if (cnt > 0)
-        {
+        if (cnt > 0) {
             int idim = 0;
             Vector<int> bf;
             pp.getarr("blocking_factor_x", bf);
             int n = std::min(cnt, max_level + 1);
-            for (int i = 0; i < n; ++i)
-            {
+            for (int i = 0; i < n; ++i) {
                 blocking_factor[i][idim] = bf[i];
             }
-            for (int i = n; i <= max_level; ++i)
-            {
+            for (int i = n; i <= max_level; ++i) {
                 blocking_factor[i][idim] = bf[n - 1];
             }
         }
 
 #if (AMREX_SPACEDIM > 1)
         cnt = pp.countval("blocking_factor_y");
-        if (cnt > 0)
-        {
+        if (cnt > 0) {
             int idim = 1;
             Vector<int> bf;
             pp.getarr("blocking_factor_y", bf);
             int n = std::min(cnt, max_level + 1);
-            for (int i = 0; i < n; ++i)
-            {
+            for (int i = 0; i < n; ++i) {
                 blocking_factor[i][idim] = bf[i];
             }
-            for (int i = n; i <= max_level; ++i)
-            {
+            for (int i = n; i <= max_level; ++i) {
                 blocking_factor[i][idim] = bf[n - 1];
             }
         }
@@ -414,18 +370,15 @@ void AmrCoreLBM::ReadParameters()
 
 #if (AMREX_SPACEDIM == 3)
         cnt = pp.countval("blocking_factor_z");
-        if (cnt > 0)
-        {
+        if (cnt > 0) {
             int idim = 2;
             Vector<int> bf;
             pp.getarr("blocking_factor_z", bf);
             int n = std::min(cnt, max_level + 1);
-            for (int i = 0; i < n; ++i)
-            {
+            for (int i = 0; i < n; ++i) {
                 blocking_factor[i][idim] = bf[i];
             }
-            for (int i = n; i <= max_level; ++i)
-            {
+            for (int i = n; i <= max_level; ++i) {
                 blocking_factor[i][idim] = bf[n - 1];
             }
         }
@@ -435,21 +388,18 @@ void AmrCoreLBM::ReadParameters()
     {
         ParmParse pp("lbm");
         int n = pp.countval("err");
-        if (n > 0)
-        {
+        if (n > 0) {
             pp.getarr("err", err, 0, n);
         }
     }
 }
 
-void AmrCoreLBM::WriteVelocityFile(const int step, const amrex::Real time)
-{
-    const std::string &plotfilename = amrex::Concatenate(plot_file, step, 6);
+void AmrCoreLBM::WriteVelocityFile(const int step, const amrex::Real time) {
+    const std::string& plotfilename = amrex::Concatenate(plot_file, step, 6);
 
-    amrex::Vector<const amrex::MultiFab *> mf;
+    amrex::Vector<const amrex::MultiFab*> mf;
 
-    for (int i = 0; i <= finest_level; ++i)
-    {
+    for (int i = 0; i <= finest_level; ++i) {
         mf.push_back(&velocity[i]);
     }
 
@@ -459,15 +409,13 @@ void AmrCoreLBM::WriteVelocityFile(const int step, const amrex::Real time)
                                    Geom(), time, Vector<int>(finest_level + 1, step), refRatio());
 }
 
-void AmrCoreLBM::WriteDensityFile(const int step, const amrex::Real time)
-{
+void AmrCoreLBM::WriteDensityFile(const int step, const amrex::Real time) {
     std::string plot_file_density{plot_file + "density_"};
-    const std::string &plotfilename = amrex::Concatenate(plot_file_density, step, 6);
+    const std::string& plotfilename = amrex::Concatenate(plot_file_density, step, 6);
 
-    amrex::Vector<const amrex::MultiFab *> mf;
+    amrex::Vector<const amrex::MultiFab*> mf;
 
-    for (int i = 0; i <= finest_level; ++i)
-    {
+    for (int i = 0; i <= finest_level; ++i) {
         mf.push_back(&density[i]);
     }
 
@@ -477,11 +425,10 @@ void AmrCoreLBM::WriteDensityFile(const int step, const amrex::Real time)
                                    Geom(), time, Vector<int>(finest_level + 1, step), refRatio());
 }
 
-void AmrCoreLBM::WriteVelocityFile(const int step, const amrex::Real time, const int lev)
-{
-    const std::string &plotfilename = amrex::Concatenate(plot_file, step, 6);
+void AmrCoreLBM::WriteVelocityFile(const int step, const amrex::Real time, const int lev) {
+    const std::string& plotfilename = amrex::Concatenate(plot_file, step, 6);
 
-    amrex::Vector<const amrex::MultiFab *> mf;
+    amrex::Vector<const amrex::MultiFab*> mf;
 
     mf.push_back(&velocity[lev]);
 
@@ -491,15 +438,13 @@ void AmrCoreLBM::WriteVelocityFile(const int step, const amrex::Real time, const
                                    Geom(), time, Vector<int>(1, step), refRatio());
 }
 
-void AmrCoreLBM::WriteVorticityFile(const int step, const amrex::Real time)
-{
+void AmrCoreLBM::WriteVorticityFile(const int step, const amrex::Real time) {
     std::string plot_file_vort{plot_file + "vort_"};
-    const std::string &plotfilename = amrex::Concatenate(plot_file_vort, step, 6);
+    const std::string& plotfilename = amrex::Concatenate(plot_file_vort, step, 6);
 
-    amrex::Vector<const amrex::MultiFab *> mf;
+    amrex::Vector<const amrex::MultiFab*> mf;
 
-    for (int i = 0; i <= finest_level; ++i)
-    {
+    for (int i = 0; i <= finest_level; ++i) {
         mf.push_back(&vorticity[i]);
     }
 
@@ -509,24 +454,19 @@ void AmrCoreLBM::WriteVorticityFile(const int step, const amrex::Real time)
                                    Geom(), time, Vector<int>(finest_level + 1, step), refRatio());
 }
 
-void AmrCoreLBM::WriteParticleFile(const int step, const amrex::Real time)
-{
-    for (int i = 0; i < particle_num; i++)
-    {
+void AmrCoreLBM::WriteParticleFile(const int step, const amrex::Real time) {
+    for (int i = 0; i < particle_num; i++) {
         particles[i]->WriteParticle(step);
     }
 }
 
-void AmrCoreLBM::WriteMultiParticleFile(const int step, const amrex::Real time)
-{
-    if (ParallelDescriptor::MyProc() == ParallelDescriptor::IOProcessorNumber())
-    {
+void AmrCoreLBM::WriteMultiParticleFile(const int step, const amrex::Real time) {
+    if (ParallelDescriptor::MyProc() == ParallelDescriptor::IOProcessorNumber()) {
         std::string filename = amrex::Concatenate("particle_data", step, 6) + ".dat";
 
         // 打开文件并检查是否成功
         std::ofstream file(filename);
-        if (!file.is_open())
-        {
+        if (!file.is_open()) {
             std::cerr << "Cannot open the file: " << filename << std::endl;
             return;
         }
@@ -539,8 +479,7 @@ void AmrCoreLBM::WriteMultiParticleFile(const int step, const amrex::Real time)
         file << std::fixed << std::setprecision(6);
 
         // 写入粒子的坐标数据
-        for (int j = 0; j < particle_num; ++j)
-        {
+        for (int j = 0; j < particle_num; ++j) {
             file << points[j][0] << "\t" << points[j][1] << "\t" << points[j][2] << "\t" << j << "\n";
         }
 
@@ -551,18 +490,16 @@ void AmrCoreLBM::WriteMultiParticleFile(const int step, const amrex::Real time)
 //********************************************************************//
 //                           mesh function                            //
 //********************************************************************//
-void AmrCoreLBM::InitMesh(amrex::Real cur_time)
-{
+void AmrCoreLBM::InitMesh(amrex::Real cur_time) {
     InitFromScratch(cur_time);
 }
-void AmrCoreLBM::FillCoarsePatch(int lev, amrex::Real time, amrex::MultiFab &mf) // 根本没有用到
+void AmrCoreLBM::FillCoarsePatch(int lev, amrex::Real time, amrex::MultiFab& mf) // 根本没有用到
 {
     // amrex::AllPrint()<<"FillCoarse Patch from " << lev-1 << " to " << lev <<std::endl;
 
-    Interpolater *mapper = &cell_cons_interp;
+    Interpolater* mapper = &cell_cons_interp;
 
-    if (Gpu::inLaunchRegion())
-    {
+    if (Gpu::inLaunchRegion()) {
         GpuBndryFuncFab<AmrCoreFill> gpu_bndry_func(AmrCoreFill{});
         PhysBCFunct<GpuBndryFuncFab<AmrCoreFill>> cphysbc(geom[lev - 1], bcs, gpu_bndry_func);
         PhysBCFunct<GpuBndryFuncFab<AmrCoreFill>> fphysbc(geom[lev], bcs, gpu_bndry_func);
@@ -570,9 +507,7 @@ void AmrCoreLBM::FillCoarsePatch(int lev, amrex::Real time, amrex::MultiFab &mf)
         amrex::InterpFromCoarseLevel(mf, time, f_old[lev - 1], 0, 0, Q, geom[lev - 1], geom[lev],
                                      cphysbc, 0, fphysbc, 0, refRatio(lev - 1),
                                      mapper, bcs, 0);
-    }
-    else
-    {
+    } else {
         CpuBndryFuncFab bndry_func(nullptr); // Without EXT_DIR, we can pass a nullptr.
         PhysBCFunct<CpuBndryFuncFab> cphysbc(geom[lev - 1], bcs, bndry_func);
         PhysBCFunct<CpuBndryFuncFab> fphysbc(geom[lev], bcs, bndry_func);
@@ -582,53 +517,43 @@ void AmrCoreLBM::FillCoarsePatch(int lev, amrex::Real time, amrex::MultiFab &mf)
                                      mapper, bcs, 0);
     }
 }
-void AmrCoreLBM::FillPatch(int lev, amrex::Real time, amrex::MultiFab &mf)
-{
+void AmrCoreLBM::FillPatch(int lev, amrex::Real time, amrex::MultiFab& mf) {
     // amrex::AllPrint()<<"FillPatch from " << lev-1 << " to " << lev <<std::endl;
 
-    Interpolater *mapper = &cell_cons_interp;
+    Interpolater* mapper = &cell_cons_interp;
 
-    if (lev == 0)
-    {
-        amrex::MultiFab &f_old_lev = f_old[lev];
-        amrex::Vector<amrex::MultiFab *> cmf{&f_old_lev};
+    if (lev == 0) {
+        amrex::MultiFab& f_old_lev = f_old[lev];
+        amrex::Vector<amrex::MultiFab*> cmf{&f_old_lev};
         amrex::Vector<Real> ctime{time};
 
-        if (Gpu::inLaunchRegion())
-        {
+        if (Gpu::inLaunchRegion()) {
             GpuBndryFuncFab<AmrCoreFill> gpu_bndry_func(AmrCoreFill{});
             PhysBCFunct<GpuBndryFuncFab<AmrCoreFill>> physbc(geom[lev], bcs, gpu_bndry_func);
             FillPatchSingleLevel(mf, time, cmf, ctime, 0, 0, Q, geom[lev], physbc, 0);
-        }
-        else
-        {
+        } else {
             CpuBndryFuncFab bndry_func(nullptr);
             PhysBCFunct<CpuBndryFuncFab> physbc(geom[lev], bcs, bndry_func);
             FillPatchSingleLevel(mf, time, cmf, ctime, 0, 0, Q, geom[lev], physbc, 0);
         }
-    }
-    else
-    {
-        amrex::MultiFab &f_old_lev_c = f_old[lev - 1];
-        amrex::MultiFab &f_old_lev_f = f_old[lev];
+    } else {
+        amrex::MultiFab& f_old_lev_c = f_old[lev - 1];
+        amrex::MultiFab& f_old_lev_f = f_old[lev];
 
-        amrex::Vector<amrex::MultiFab *> cmf{&f_old_lev_c};
-        amrex::Vector<amrex::MultiFab *> fmf{&f_old_lev_f};
+        amrex::Vector<amrex::MultiFab*> cmf{&f_old_lev_c};
+        amrex::Vector<amrex::MultiFab*> fmf{&f_old_lev_f};
 
         amrex::Vector<Real> ctime{time};
         amrex::Vector<Real> ftime{time};
 
-        if (Gpu::inLaunchRegion())
-        {
+        if (Gpu::inLaunchRegion()) {
             GpuBndryFuncFab<AmrCoreFill> gpu_bndry_func(AmrCoreFill{});
             PhysBCFunct<GpuBndryFuncFab<AmrCoreFill>> cphysbc(geom[lev - 1], bcs, gpu_bndry_func);
             PhysBCFunct<GpuBndryFuncFab<AmrCoreFill>> fphysbc(geom[lev], bcs, gpu_bndry_func);
             amrex::FillPatchTwoLevels(mf, time, cmf, ctime, fmf, ftime, 0, 0, Q,
                                       geom[lev - 1], geom[lev], cphysbc, 0, fphysbc, 0,
                                       refRatio(lev - 1), mapper, bcs, 0);
-        }
-        else
-        {
+        } else {
             CpuBndryFuncFab bndry_func(nullptr);
             PhysBCFunct<CpuBndryFuncFab> cphysbc(geom[lev - 1], bcs, bndry_func);
             PhysBCFunct<CpuBndryFuncFab> fphysbc(geom[lev], bcs, bndry_func);
@@ -640,47 +565,42 @@ void AmrCoreLBM::FillPatch(int lev, amrex::Real time, amrex::MultiFab &mf)
     }
 }
 
-void AmrCoreLBM::FillDdfPatch(int lev, amrex::Real time, amrex::MultiFab &mf) // 加入缩放
+void AmrCoreLBM::FillDdfPatch(int lev, amrex::Real time, amrex::MultiFab& mf) // 加入缩放
 {
     // amrex::AllPrint()<<"FillDdfPatch from " << lev-1 << " to " << lev <<std::endl;
 
-    Interpolater *mapper = &cell_cons_interp;
+    Interpolater* mapper = &cell_cons_interp;
 
-    amrex::MultiFab &f_new_lev_c = f_new[lev - 1]; // 用f_new当缓存容器
-    amrex::MultiFab &f_old_lev_f = f_old[lev];     // 保持和传入的mf一致
+    amrex::MultiFab& f_new_lev_c = f_new[lev - 1]; // 用f_new当缓存容器
+    amrex::MultiFab& f_old_lev_f = f_old[lev];     // 保持和传入的mf一致
 
-    amrex::Vector<amrex::MultiFab *> cmf{&f_new_lev_c};
-    amrex::Vector<amrex::MultiFab *> fmf{&f_old_lev_f};
+    amrex::Vector<amrex::MultiFab*> cmf{&f_new_lev_c};
+    amrex::Vector<amrex::MultiFab*> fmf{&f_old_lev_f};
 
     amrex::Vector<Real> ctime{time};
     amrex::Vector<Real> ftime{time};
 
     // 如果是粗网格插值到细网格valid,无论如何只需要操作粗网格就可以了。
-    amrex::MultiFab &f_old_lev_c = f_old[lev - 1];
+    amrex::MultiFab& f_old_lev_c = f_old[lev - 1];
     amrex::Real scale = tau[lev] / tau[lev - 1] / 2.0;
 
-    for (MFIter mfi(f_old_lev_c, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
+    for (MFIter mfi(f_old_lev_c, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const auto bx = mfi.growntilebox(0); // 只需要粗网格的valid值就可以了
 
-        const Array4<Real> &fold = f_old_lev_c.array(mfi);
-        const Array4<Real> &fnew = f_new_lev_c.array(mfi);
+        const Array4<Real>& fold = f_old_lev_c.array(mfi);
+        const Array4<Real>& fnew = f_new_lev_c.array(mfi);
 
-        amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k)
-                           { interp_scale(i, j, k, fold, fnew, scale); });
+        amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) { interp_scale(i, j, k, fold, fnew, scale); });
     }
 
-    if (Gpu::inLaunchRegion())
-    {
+    if (Gpu::inLaunchRegion()) {
         GpuBndryFuncFab<AmrCoreFill> gpu_bndry_func(AmrCoreFill{});
         PhysBCFunct<GpuBndryFuncFab<AmrCoreFill>> cphysbc(geom[lev - 1], bcs, gpu_bndry_func);
         PhysBCFunct<GpuBndryFuncFab<AmrCoreFill>> fphysbc(geom[lev], bcs, gpu_bndry_func);
         amrex::FillPatchTwoLevels(mf, time, cmf, ctime, fmf, ftime, 0, 0, Q,
                                   geom[lev - 1], geom[lev], cphysbc, 0, fphysbc, 0,
                                   refRatio(lev - 1), mapper, bcs, 0);
-    }
-    else
-    {
+    } else {
         CpuBndryFuncFab bndry_func(nullptr);
         PhysBCFunct<CpuBndryFuncFab> cphysbc(geom[lev - 1], bcs, bndry_func);
         PhysBCFunct<CpuBndryFuncFab> fphysbc(geom[lev], bcs, bndry_func);
@@ -691,51 +611,41 @@ void AmrCoreLBM::FillDdfPatch(int lev, amrex::Real time, amrex::MultiFab &mf) //
     }
 }
 
-void AmrCoreLBM::FillMacroPatch(int lev, amrex::Real time, amrex::MultiFab &mf)
-{
-    Interpolater *mapper = &cell_cons_interp;
+void AmrCoreLBM::FillMacroPatch(int lev, amrex::Real time, amrex::MultiFab& mf) {
+    Interpolater* mapper = &cell_cons_interp;
 
-    if (lev == 0)
-    {
-        amrex::MultiFab &u_lev = velocity[lev];
-        amrex::Vector<amrex::MultiFab *> cmf{&u_lev};
+    if (lev == 0) {
+        amrex::MultiFab& u_lev = velocity[lev];
+        amrex::Vector<amrex::MultiFab*> cmf{&u_lev};
         amrex::Vector<Real> ctime{time};
 
-        if (Gpu::inLaunchRegion())
-        {
+        if (Gpu::inLaunchRegion()) {
             GpuBndryFuncFab<AmrCoreFill> gpu_bndry_func(AmrCoreFill{});
             PhysBCFunct<GpuBndryFuncFab<AmrCoreFill>> physbc(geom[lev], bcs, gpu_bndry_func);
             FillPatchSingleLevel(mf, time, cmf, ctime, 0, 0, AMREX_SPACEDIM, geom[lev], physbc, 0);
-        }
-        else
-        {
+        } else {
             CpuBndryFuncFab bndry_func(nullptr);
             PhysBCFunct<CpuBndryFuncFab> physbc(geom[lev], bcs, bndry_func);
             FillPatchSingleLevel(mf, time, cmf, ctime, 0, 0, AMREX_SPACEDIM, geom[lev], physbc, 0);
         }
-    }
-    else
-    {
-        amrex::MultiFab &u_lev_c = velocity[lev - 1];
-        amrex::MultiFab &u_lev_f = velocity[lev];
+    } else {
+        amrex::MultiFab& u_lev_c = velocity[lev - 1];
+        amrex::MultiFab& u_lev_f = velocity[lev];
 
-        amrex::Vector<amrex::MultiFab *> cmf{&u_lev_c};
-        amrex::Vector<amrex::MultiFab *> fmf{&u_lev_f};
+        amrex::Vector<amrex::MultiFab*> cmf{&u_lev_c};
+        amrex::Vector<amrex::MultiFab*> fmf{&u_lev_f};
 
         amrex::Vector<Real> ctime{time};
         amrex::Vector<Real> ftime{time};
 
-        if (Gpu::inLaunchRegion())
-        {
+        if (Gpu::inLaunchRegion()) {
             GpuBndryFuncFab<AmrCoreFill> gpu_bndry_func(AmrCoreFill{});
             PhysBCFunct<GpuBndryFuncFab<AmrCoreFill>> cphysbc(geom[lev - 1], bcs, gpu_bndry_func);
             PhysBCFunct<GpuBndryFuncFab<AmrCoreFill>> fphysbc(geom[lev], bcs, gpu_bndry_func);
             amrex::FillPatchTwoLevels(mf, time, cmf, ctime, fmf, ftime, 0, 0, AMREX_SPACEDIM,
                                       geom[lev - 1], geom[lev], cphysbc, 0, fphysbc, 0,
                                       refRatio(lev - 1), mapper, bcs, 0);
-        }
-        else
-        {
+        } else {
             CpuBndryFuncFab bndry_func(nullptr);
             PhysBCFunct<CpuBndryFuncFab> cphysbc(geom[lev - 1], bcs, bndry_func);
             PhysBCFunct<CpuBndryFuncFab> fphysbc(geom[lev], bcs, bndry_func);
@@ -747,8 +657,7 @@ void AmrCoreLBM::FillMacroPatch(int lev, amrex::Real time, amrex::MultiFab &mf)
     }
 }
 
-void AmrCoreLBM::RefineMesh(amrex::Real cur_time)
-{
+void AmrCoreLBM::RefineMesh(amrex::Real cur_time) {
     // amrex::Print()<<"..............."<<std::endl;
     // amrex::Print()<<"regrid begin..."<<std::endl;
     regrid(0, cur_time);
@@ -756,12 +665,10 @@ void AmrCoreLBM::RefineMesh(amrex::Real cur_time)
     // amrex::Print()<<"..............."<<std::endl;
 }
 
-void AmrCoreLBM::FindCentre()
-{
+void AmrCoreLBM::FindCentre() {
     // amrex::AllPrint()<<"FindCentre "<<std::endl;
 
-    for (int p_num = 0; p_num < particle_num; p_num++)
-    {
+    for (int p_num = 0; p_num < particle_num; p_num++) {
         points[p_num] = particles[p_num]->ReturnCentre();
         // amrex::Print() << "id " << p_num << "'s z_positon is " << points[p_num][2] << std::endl;
     }
@@ -771,121 +678,100 @@ void AmrCoreLBM::FindCentre()
 //                           lbm  function                            //
 //********************************************************************//
 
-void AmrCoreLBM::ComputeMacroLevel(int lev)
-{
-    amrex::MultiFab &f_old_lev = f_old[lev];
-    amrex::MultiFab &rho_lev = density[lev];
-    amrex::MultiFab &u_lev = velocity[lev];
+void AmrCoreLBM::ComputeMacroLevel(int lev) {
+    amrex::MultiFab& f_old_lev = f_old[lev];
+    amrex::MultiFab& rho_lev = density[lev];
+    amrex::MultiFab& u_lev = velocity[lev];
 
-    for (MFIter mfi(f_old_lev, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-        const Box &bx = mfi.growntilebox(nghost);
-        Array4<Real> const &fold = f_old_lev.array(mfi);
-        Array4<Real> const &rho = rho_lev.array(mfi);
-        Array4<Real> const &u = u_lev.array(mfi);
+    for (MFIter mfi(f_old_lev, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.growntilebox(nghost);
+        Array4<Real> const& fold = f_old_lev.array(mfi);
+        Array4<Real> const& rho = rho_lev.array(mfi);
+        Array4<Real> const& u = u_lev.array(mfi);
 
-        amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k)
-                           { compute_macro(i, j, k, fold, rho, u); });
+        amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) { compute_macro(i, j, k, fold, rho, u); });
     }
 }
 
-void AmrCoreLBM::ComputeMacro()
-{
-    for (int lev = 0; lev <= finest_level; lev++)
-    {
+void AmrCoreLBM::ComputeMacro() {
+    for (int lev = 0; lev <= finest_level; lev++) {
         ComputeMacroLevel(lev);
     }
 }
 
-void AmrCoreLBM::ComputeVorticityLevel(int lev)
-{
+void AmrCoreLBM::ComputeVorticityLevel(int lev) {
     // amrex::AllPrint()<<"ComputeVorticityLevel on " << lev <<std::endl;
 
-    amrex::MultiFab &f_old_lev = f_old[lev];
-    amrex::MultiFab &u_lev = velocity[lev];
-    amrex::MultiFab &vort_lev = vorticity[lev];
+    amrex::MultiFab& f_old_lev = f_old[lev];
+    amrex::MultiFab& u_lev = velocity[lev];
+    amrex::MultiFab& vort_lev = vorticity[lev];
     amrex::Real dt = Geom(lev).CellSizeArray()[0];
 
-    for (MFIter mfi(f_old_lev, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-        const Box &bx = mfi.growntilebox(0);
+    for (MFIter mfi(f_old_lev, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.growntilebox(0);
 
-        Array4<Real> const &u = u_lev.array(mfi);
-        Array4<Real> const &vort = vort_lev.array(mfi);
+        Array4<Real> const& u = u_lev.array(mfi);
+        Array4<Real> const& vort = vort_lev.array(mfi);
 
-        amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k)
-                           { compute_vorticity(i, j, k, u, vort, dt); });
+        amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) { compute_vorticity(i, j, k, u, vort, dt); });
     }
 }
 
-void AmrCoreLBM::ComputeVorticity(amrex::Real cur_time)
-{
-    for (int lev = 0; lev <= finest_level; lev++)
-    {
+void AmrCoreLBM::ComputeVorticity(amrex::Real cur_time) {
+    for (int lev = 0; lev <= finest_level; lev++) {
         FillMacroGhostLevel(lev, cur_time);
         ComputeVorticityLevel(lev);
     }
 }
 
-void AmrCoreLBM::ComputeShearLevel(int lev)
-{
-    amrex::MultiFab &f_old_lev = f_old[lev];
-    amrex::MultiFab &u_lev = velocity[lev];
-    amrex::MultiFab &shear_lev = shear[lev];
+void AmrCoreLBM::ComputeShearLevel(int lev) {
+    amrex::MultiFab& f_old_lev = f_old[lev];
+    amrex::MultiFab& u_lev = velocity[lev];
+    amrex::MultiFab& shear_lev = shear[lev];
     amrex::Real dt = Geom(lev).CellSizeArray()[0];
 
-    for (MFIter mfi(f_old_lev, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-        const Box &bx = mfi.growntilebox(0);
+    for (MFIter mfi(f_old_lev, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.growntilebox(0);
 
-        Array4<Real> const &u = u_lev.array(mfi);
-        Array4<Real> const &shear = shear_lev.array(mfi);
+        Array4<Real> const& u = u_lev.array(mfi);
+        Array4<Real> const& shear = shear_lev.array(mfi);
 
-        amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k)
-                           { compute_shear(i, j, k, u, shear, dt); });
+        amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) { compute_shear(i, j, k, u, shear, dt); });
     }
 }
 
-void AmrCoreLBM::ComputeShear()
-{
-    for (int lev = 0; lev <= finest_level; lev++)
-    {
+void AmrCoreLBM::ComputeShear() {
+    for (int lev = 0; lev <= finest_level; lev++) {
         ComputeShearLevel(lev);
     }
 }
 
-void AmrCoreLBM::AverageDownValidLevel(int lev, bool is_scale)
-{
+void AmrCoreLBM::AverageDownValidLevel(int lev, bool is_scale) {
     // amrex::AllPrint()<<"AverageDownValidLevel from " << lev+1 << " to " << lev <<std::endl;
     // amrex::average_down(f_old[lev+1], f_old[lev], geom[lev+1], geom[lev],0, Q, refRatio(lev));
 
-    amrex::MultiFab &fine_mf = f_old[lev + 1];
-    amrex::MultiFab &crse_mf = f_old[lev];
+    amrex::MultiFab& fine_mf = f_old[lev + 1];
+    amrex::MultiFab& crse_mf = f_old[lev];
 
     MultiFab fine_boundary_data(fine_mf.boxArray(), fine_mf.DistributionMap(), Q, 0); // 能不能用f_new减少内存消耗
     MultiFab::Copy(fine_boundary_data, fine_mf, 0, 0, Q, 0);
 
-    if (is_scale)
-    {
+    if (is_scale) {
         amrex::Real scale = 2.0 * tau[lev] / tau[lev + 1];
 
-        for (MFIter mfi(fine_boundary_data, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-        {
+        for (MFIter mfi(fine_boundary_data, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
             const auto bx = mfi.growntilebox(0);
 
-            const Array4<Real> &fold = fine_boundary_data.array(mfi);
+            const Array4<Real>& fold = fine_boundary_data.array(mfi);
 
-            amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k)
-                               { average_scale(i, j, k, fold, scale); });
+            amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) { average_scale(i, j, k, fold, scale); });
         }
     }
     amrex::average_down(fine_boundary_data, crse_mf, 0, Q, refRatio(lev));
 }
 
-void AmrCoreLBM::AverageDownValid()
-{
-    for (int lev = finest_level - 1; lev >= 0; --lev)
-    {
+void AmrCoreLBM::AverageDownValid() {
+    for (int lev = finest_level - 1; lev >= 0; --lev) {
         AverageDownValidLevel(lev, 1);
     }
 }
@@ -917,48 +803,39 @@ void AmrCoreLBM::AverageDownValid()
 //     amrex::average_down(fine_boundary_data, crse_mf, 0, Q, refRatio(lev));
 // }
 
-void AmrCoreLBM::AverageDownGhostLevel(int lev, bool is_scale)
-{
+void AmrCoreLBM::AverageDownGhostLevel(int lev, bool is_scale) {
     // amrex::AllPrint()<<"AverageDownGhostLevel from " << lev+1 << " to " << lev <<std::endl;
 
-    amrex::MultiFab &fine_mf = f_old[lev + 1];
-    amrex::MultiFab &crse_mf = f_old[lev];
+    amrex::MultiFab& fine_mf = f_old[lev + 1];
+    amrex::MultiFab& crse_mf = f_old[lev];
 
     MultiFab fine_boundary_data(fine_mf.boxArray(), fine_mf.DistributionMap(), Q, 2); // 能不能用f_new减少内存消耗
     MultiFab::Copy(fine_boundary_data, fine_mf, 0, 0, Q, 2);
 
-    if (is_scale)
-    {
+    if (is_scale) {
         amrex::Real scale = 2.0 * tau[lev] / tau[lev + 1];
 
-        for (MFIter mfi(fine_boundary_data, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-        {
+        for (MFIter mfi(fine_boundary_data, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
             const auto bx = mfi.growntilebox(2);
 
-            const Array4<Real> &fold = fine_boundary_data.array(mfi);
+            const Array4<Real>& fold = fine_boundary_data.array(mfi);
 
-            amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k)
-                               { average_scale(i, j, k, fold, scale); });
+            amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) { average_scale(i, j, k, fold, scale); });
         }
     }
 
     amrex::average_down(fine_boundary_data, crse_mf, 0, Q, refRatio(lev));
 }
 
-void AmrCoreLBM::AverageDownGhost()
-{
+void AmrCoreLBM::AverageDownGhost() {
 }
 
-void AmrCoreLBM::FillGhostLevel(int lev, amrex::Real time, bool is_scale)
-{
-    amrex::MultiFab &f_old_lev = f_old[lev];
+void AmrCoreLBM::FillGhostLevel(int lev, amrex::Real time, bool is_scale) {
+    amrex::MultiFab& f_old_lev = f_old[lev];
 
-    if (is_scale)
-    {
+    if (is_scale) {
         FillDdfPatch(lev, time, f_old_lev);
-    }
-    else
-    {
+    } else {
         FillPatch(lev, time, f_old_lev);
     }
 }
@@ -968,46 +845,36 @@ void AmrCoreLBM::FillGhostLevel(int lev, amrex::Real time, bool is_scale)
  * @param lev 网格层级
  * @param time 当前时间
  */
-void AmrCoreLBM::FillMacroGhostLevel(int lev, amrex::Real time)
-{
-    amrex::MultiFab &u_lev = velocity[lev]; // 获取当前层级的速度场多网格数据结构
+void AmrCoreLBM::FillMacroGhostLevel(int lev, amrex::Real time) {
+    amrex::MultiFab& u_lev = velocity[lev]; // 获取当前层级的速度场多网格数据结构
 
-    if (lev == 0)
-    {
+    if (lev == 0) {
         u_lev.FillBoundary(geom[lev].periodicity()); // 对于最底层网格，只填充周期性边界
-    }
-    else
-    {
+    } else {
         FillMacroPatch(lev, time, u_lev);            // 填充c-f边界
         u_lev.FillBoundary(geom[lev].periodicity()); // 填充同等级
     }
 }
 
-void AmrCoreLBM::FillForceGhostLevel(int lev, amrex::Real time)
-{
+void AmrCoreLBM::FillForceGhostLevel(int lev, amrex::Real time) {
     // amrex::AllPrint()<<"FillForceGhostLevel on " << lev <<std::endl;
 
-    amrex::MultiFab &force_lev = force[lev];
+    amrex::MultiFab& force_lev = force[lev];
 
-    if (lev == 0)
-    {
+    if (lev == 0) {
         force_lev.FillBoundary(geom[lev].periodicity());
-    }
-    else
-    {
+    } else {
         // 填充c-f边界
         force_lev.FillBoundary(geom[lev].periodicity()); // 填充同等级
     }
 }
 
-void AmrCoreLBM::CommunicateLevel(int lev)
-{
-    amrex::MultiFab &f_old_lev = f_old[lev];
+void AmrCoreLBM::CommunicateLevel(int lev) {
+    amrex::MultiFab& f_old_lev = f_old[lev];
     f_old_lev.FillBoundary(geom[lev].periodicity());
 }
 
-void AmrCoreLBM::Boundary(int lev)
-{
+void AmrCoreLBM::Boundary(int lev) {
     // amrex::AllPrint()<<"Boundary on " << lev <<std::endl;
 
     int right = Geom(lev).Domain().length(0) - 1;
@@ -1015,22 +882,19 @@ void AmrCoreLBM::Boundary(int lev)
     int up = Geom(lev).Domain().length(2) - 1;
     amrex::IntVect hi{right, back, up};
 
-    amrex::MultiFab &f_old_lev = f_old[lev];
-    amrex::MultiFab &f_new_lev = f_new[lev];
+    amrex::MultiFab& f_old_lev = f_old[lev];
+    amrex::MultiFab& f_new_lev = f_new[lev];
 
-    for (MFIter mfi(f_old_lev, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
+    for (MFIter mfi(f_old_lev, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const auto bx = mfi.growntilebox(nghost);
-        const Array4<Real> &fold = f_old_lev.array(mfi);
-        const Array4<Real> &fnew = f_new_lev.array(mfi);
+        const Array4<Real>& fold = f_old_lev.array(mfi);
+        const Array4<Real>& fnew = f_new_lev.array(mfi);
 
-        amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k)
-                           { fill_boundary(i, j, k, fold, fnew, hi); });
+        amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) { fill_boundary(i, j, k, fold, fnew, hi); });
     }
 }
 
-void AmrCoreLBM::Collide(int lev, int n)
-{
+void AmrCoreLBM::Collide(int lev, int n) {
     // amrex::AllPrint()<<"Collide on " << lev <<std::endl;
 
     int right = Geom(lev).Domain().length(0) - 1;
@@ -1038,31 +902,28 @@ void AmrCoreLBM::Collide(int lev, int n)
     int up = Geom(lev).Domain().length(2) - 1;
     amrex::IntVect hi{right, back, up};
 
-    amrex::MultiFab &f_old_lev = f_old[lev];
-    amrex::MultiFab &shear_lev = shear[lev];
-    amrex::MultiFab &force_lev = force[lev];
+    amrex::MultiFab& f_old_lev = f_old[lev];
+    amrex::MultiFab& shear_lev = shear[lev];
+    amrex::MultiFab& force_lev = force[lev];
     amrex::Real dt = Geom(lev).CellSizeArray()[0];
     amrex::Real tau_lev = tau[lev];
 
-    for (MFIter mfi(f_old_lev, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
+    for (MFIter mfi(f_old_lev, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const auto bx = mfi.growntilebox(n);
-        const Array4<Real> &fold = f_old_lev.array(mfi);
-        const Array4<Real> &s = shear_lev.array(mfi);
-        const Array4<Real> &Ft = force_lev.array(mfi);
+        const Array4<Real>& fold = f_old_lev.array(mfi);
+        const Array4<Real>& s = shear_lev.array(mfi);
+        const Array4<Real>& Ft = force_lev.array(mfi);
 
-        amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k)
-                           {
-                               // collide(i, j, k, fold, s, Ft, tau_lev, dt, hi);
-                               collide_cumulant(i, j, k, fold, s, Ft, tau_lev, dt, hi);
-                               // collide_cumulant_opt(i, j, k, fold, s, Ft, tau_lev, dt, hi);
-                               // collide_cumulant_opt2(i, j, k, fold, s, Ft, tau_lev, dt, hi);
-                           });
+        amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+            // collide(i, j, k, fold, s, Ft, tau_lev, dt, hi);
+            collide_cumulant(i, j, k, fold, s, Ft, tau_lev, dt, hi);
+            // collide_cumulant_opt(i, j, k, fold, s, Ft, tau_lev, dt, hi);
+            // collide_cumulant_opt2(i, j, k, fold, s, Ft, tau_lev, dt, hi);
+        });
     }
 }
 
-void AmrCoreLBM::Stream(int lev, int n)
-{
+void AmrCoreLBM::Stream(int lev, int n) {
     // amrex::AllPrint()<<"Stream on " << lev <<std::endl;
 
     int right = Geom(lev).Domain().length(0) - 1;
@@ -1070,20 +931,18 @@ void AmrCoreLBM::Stream(int lev, int n)
     int up = Geom(lev).Domain().length(2) - 1;
     amrex::IntVect hi{right, back, up};
 
-    amrex::MultiFab &f_old_lev = f_old[lev];
-    amrex::MultiFab &f_new_lev = f_new[lev];
+    amrex::MultiFab& f_old_lev = f_old[lev];
+    amrex::MultiFab& f_new_lev = f_new[lev];
 
     bool is_finest = {lev == finest_level};
     bool is_coarsest = {lev == 0};
 
-    for (MFIter mfi(f_old_lev, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
+    for (MFIter mfi(f_old_lev, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const auto bx = mfi.growntilebox(n);
-        const Array4<Real> &fold = f_old_lev.array(mfi);
-        const Array4<Real> &fnew = f_new_lev.array(mfi);
+        const Array4<Real>& fold = f_old_lev.array(mfi);
+        const Array4<Real>& fnew = f_new_lev.array(mfi);
 
-        amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k)
-                           { stream(i, j, k, fold, fnew, hi, is_finest); });
+        amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) { stream(i, j, k, fold, fnew, hi, is_finest); });
     }
 }
 
@@ -1105,10 +964,9 @@ void AmrCoreLBM::Stream(int lev, int n)
 //     }
 // }
 
-void AmrCoreLBM::SwapLevel(int lev, int n)
-{
-    amrex::MultiFab &f_old_lev = f_old[lev];
-    amrex::MultiFab &f_new_lev = f_new[lev];
+void AmrCoreLBM::SwapLevel(int lev, int n) {
+    amrex::MultiFab& f_old_lev = f_old[lev];
+    amrex::MultiFab& f_new_lev = f_new[lev];
 
     std::swap(f_old_lev, f_new_lev);
 }
@@ -1118,18 +976,15 @@ void AmrCoreLBM::InterpScale(int lev, int n) // n=nghost
     amrex::AllPrint() << "InterpScale not existing !" << std::endl;
 }
 
-void AmrCoreLBM::AverageScale(int lev, int n)
-{
+void AmrCoreLBM::AverageScale(int lev, int n) {
     amrex::AllPrint() << "AverageScale not existing !" << std::endl;
 }
 
 //********************************************************************//
 //                           ibm  function                            //
 //********************************************************************//
-void AmrCoreLBM::InitParticle(int lev)
-{
-    for (int i = 0; i < particle_num; i++)
-    {
+void AmrCoreLBM::InitParticle(int lev) {
+    for (int i = 0; i < particle_num; i++) {
         particles[i] = std::make_unique<LagrangeParticleContainer>(this, points[i], i);
         particles[i]->InitParticle(lev);
         // particles[i] ->InitParticleFromFile(lev, "../../../object/sphere128");
@@ -1137,29 +992,25 @@ void AmrCoreLBM::InitParticle(int lev)
     }
 }
 
-void AmrCoreLBM::InterpForce(int lev)
-{
-    amrex::MultiFab &rho_lev = density[lev];
-    amrex::MultiFab &u_lev = velocity[lev];
-    amrex::MultiFab &force_lev = force[lev];
+void AmrCoreLBM::InterpForce(int lev) {
+    amrex::MultiFab& rho_lev = density[lev];
+    amrex::MultiFab& u_lev = velocity[lev];
+    amrex::MultiFab& force_lev = force[lev];
 
     force_lev.setVal(0.0, nghost);
-    for (int i = 0; i < particle_num; i++)
-    {
+    for (int i = 0; i < particle_num; i++) {
         particles[i]->InterpForce(lev, rho_lev, u_lev, force_lev);
         // particles[i]->InterpForceWallModel(lev, rho_lev, u_lev, force_lev);
     }
 }
 
-void AmrCoreLBM::SumForce(int lev)
-{
-    MultiFab *mf_pointer = &force[lev];
+void AmrCoreLBM::SumForce(int lev) {
+    MultiFab* mf_pointer = &force[lev];
 
     mf_pointer->SumBoundary(Geom(lev).periodicity());
 }
 
-void AmrCoreLBM::ComputeParticle(int lev)
-{
+void AmrCoreLBM::ComputeParticle(int lev) {
     // amrex::AllPrint()<<"ComputeParticle on " << lev <<std::endl;
     CommunicateLevel(lev);
     ComputeMacroLevel(lev);
@@ -1167,39 +1018,30 @@ void AmrCoreLBM::ComputeParticle(int lev)
     SumForce(lev);
 }
 
-void AmrCoreLBM::ReduceFxy(int lev, int step)
-{
-    for (int i = 0; i < particle_num; i++)
-    {
+void AmrCoreLBM::ReduceFxy(int lev, int step) {
+    for (int i = 0; i < particle_num; i++) {
         particles[i]->SaveFxy(lev, step);
     }
 }
 
-void AmrCoreLBM::SaveParticleVelocity(int lev, int step)
-{
-    for (int i = 0; i < particle_num; i++)
-    {
+void AmrCoreLBM::SaveParticleVelocity(int lev, int step) {
+    for (int i = 0; i < particle_num; i++) {
         particles[i]->SaveVelocity(lev, step);
     }
 }
 
-void AmrCoreLBM::SaveParticlePosition(int lev, int step)
-{
-    for (int i = 0; i < particle_num; i++)
-    {
+void AmrCoreLBM::SaveParticlePosition(int lev, int step) {
+    for (int i = 0; i < particle_num; i++) {
         particles[i]->SavePosition(lev, step);
     }
 }
 
-void AmrCoreLBM::SaveParticleDistance(int lev, int step)
-{
-    if (ParallelDescriptor::MyProc() == ParallelDescriptor::IOProcessorNumber())
-    {
+void AmrCoreLBM::SaveParticleDistance(int lev, int step) {
+    if (ParallelDescriptor::MyProc() == ParallelDescriptor::IOProcessorNumber()) {
         std::string filename = "dist.dat";
         std::ofstream file(filename, std::ios::app);
 
-        if (!file.is_open())
-        {
+        if (!file.is_open()) {
             std::cerr << "Cannot open the file: " << filename << std::endl;
             std::exit(1); // 错误退出
         }
@@ -1215,65 +1057,52 @@ void AmrCoreLBM::SaveParticleDistance(int lev, int step)
     }
 }
 
-void AmrCoreLBM::PrintParticleParm()
-{
+void AmrCoreLBM::PrintParticleParm() {
     particles[0]->PrintParticleParm();
 }
 
-void AmrCoreLBM::RedistributeParticle()
-{
+void AmrCoreLBM::RedistributeParticle() {
     // amrex::AllPrint()<< "RedistributeParticle" << std::endl;
-    for (int i = 0; i < particle_num; i++)
-    {
+    for (int i = 0; i < particle_num; i++) {
         particles[i]->Redistribute();
     }
 }
 
-void AmrCoreLBM::InitCpPoint(int lev)
-{
-    for (int i = 0; i < particle_num; i++)
-    {
+void AmrCoreLBM::InitCpPoint(int lev) {
+    for (int i = 0; i < particle_num; i++) {
         particlesCp[i] = std::make_unique<AuxiliaryPointContainer>(this, points[i], i);
         particlesCp[i]->InitCpPoint(lev);
     }
 }
 
-void AmrCoreLBM::ComputeCp(int lev, int step)
-{
+void AmrCoreLBM::ComputeCp(int lev, int step) {
     CommunicateLevel(lev);
     ComputeMacroLevel(lev);
 
-    amrex::MultiFab &rho_lev = density[lev];
+    amrex::MultiFab& rho_lev = density[lev];
 
-    for (int i = 0; i < particle_num; i++)
-    {
+    for (int i = 0; i < particle_num; i++) {
         particlesCp[i]->InterpCp(lev, rho_lev);
         particlesCp[i]->WriteCp(step);
     }
 }
 
-void AmrCoreLBM::LubForceParticle(int lev, amrex::Real cur_time)
-{
+void AmrCoreLBM::LubForceParticle(int lev, amrex::Real cur_time) {
     // 在这里遍历，然后传入两个颗粒
-    for (int p1 = 0; p1 < particle_num; p1++)
-    {
-        for (int p2 = p1 + 1; p2 < particle_num; p2++)
-        {
+    for (int p1 = 0; p1 < particle_num; p1++) {
+        for (int p2 = p1 + 1; p2 < particle_num; p2++) {
             particles[p1]->CollideParticle(particles[p2]);
         }
     }
 
-    for (int p1 = 0; p1 < particle_num; p1++)
-    {
+    for (int p1 = 0; p1 < particle_num; p1++) {
         particles[p1]->CollideWall();
     }
 }
 
-void AmrCoreLBM::MoveParticle(int lev, amrex::Real cur_time)
-{
+void AmrCoreLBM::MoveParticle(int lev, amrex::Real cur_time) {
     // amrex::AllPrint()<<"MoveParticle on " << lev <<std::endl;
-    for (int i = 0; i < particle_num; i++)
-    {
+    for (int i = 0; i < particle_num; i++) {
         particles[i]->MoveParticle(lev, cur_time);
         particles[i]->Redistribute();
     }
@@ -1282,23 +1111,22 @@ void AmrCoreLBM::MoveParticle(int lev, amrex::Real cur_time)
 //********************************************************************//
 //                     Pure virtual function                          //
 //********************************************************************//
-void AmrCoreLBM::MakeNewLevelFromCoarse(int lev, amrex::Real time, const amrex::BoxArray &ba,
-                                        const amrex::DistributionMapping &dm) // 暂时用不到
+void AmrCoreLBM::MakeNewLevelFromCoarse(int lev, amrex::Real time, const amrex::BoxArray& ba,
+                                        const amrex::DistributionMapping& dm) // 暂时用不到
 {
     // amrex::AllPrint()<<"MakeNewLevelFromCoarse on " << lev <<std::endl;
 
-    if (lev == 0)
-    {
+    if (lev == 0) {
         amrex::Abort("Cannot construct level 0 from a coarser level.");
     }
 
-    amrex::MultiFab &u_lev = velocity.at(lev);
-    amrex::MultiFab &rho_lev = density.at(lev);
-    amrex::MultiFab &vort_lev = vorticity.at(lev);
-    amrex::MultiFab &force_lev = force.at(lev);
-    amrex::MultiFab &shear_lev = shear.at(lev);
-    amrex::MultiFab &f_new_lev = f_new.at(lev);
-    amrex::MultiFab &f_old_lev = f_old.at(lev);
+    amrex::MultiFab& u_lev = velocity.at(lev);
+    amrex::MultiFab& rho_lev = density.at(lev);
+    amrex::MultiFab& vort_lev = vorticity.at(lev);
+    amrex::MultiFab& force_lev = force.at(lev);
+    amrex::MultiFab& shear_lev = shear.at(lev);
+    amrex::MultiFab& f_new_lev = f_new.at(lev);
+    amrex::MultiFab& f_old_lev = f_old.at(lev);
 
     u_lev.define(ba, dm, AMREX_SPACEDIM, nghost);
     rho_lev.define(ba, dm, 1, nghost);
@@ -1310,9 +1138,8 @@ void AmrCoreLBM::MakeNewLevelFromCoarse(int lev, amrex::Real time, const amrex::
 
     FillCoarsePatch(lev, time, f_old_lev);
 }
-void AmrCoreLBM::RemakeLevel(int lev, amrex::Real time, const amrex::BoxArray &ba,
-                             const amrex::DistributionMapping &dm)
-{
+void AmrCoreLBM::RemakeLevel(int lev, amrex::Real time, const amrex::BoxArray& ba,
+                             const amrex::DistributionMapping& dm) {
     // amrex::AllPrint()<<"ReMakeLevel on " << lev <<std::endl;
 
     amrex::MultiFab new_state(ba, dm, Q, nghost);
@@ -1339,8 +1166,7 @@ void AmrCoreLBM::RemakeLevel(int lev, amrex::Real time, const amrex::BoxArray &b
     shear[lev].setVal(0.0, nghost);
     vorticity[lev].setVal(0.0, nghost);
 }
-void AmrCoreLBM::ClearLevel(int lev)
-{
+void AmrCoreLBM::ClearLevel(int lev) {
     // amrex::AllPrint()<<"ClearLevel on " << lev <<std::endl;
 
     f_old[lev].clear();
@@ -1351,16 +1177,15 @@ void AmrCoreLBM::ClearLevel(int lev)
     shear[lev].clear();
     force[lev].clear();
 }
-void AmrCoreLBM::MakeNewLevelFromScratch(int lev, amrex::Real time, const amrex::BoxArray &ba,
-                                         const amrex::DistributionMapping &dm)
-{
-    amrex::MultiFab &u_lev = velocity.at(lev);
-    amrex::MultiFab &rho_lev = density.at(lev);
-    amrex::MultiFab &vort_lev = vorticity.at(lev);
-    amrex::MultiFab &force_lev = force.at(lev);
-    amrex::MultiFab &shear_lev = shear.at(lev);
-    amrex::MultiFab &f_new_lev = f_new.at(lev);
-    amrex::MultiFab &f_old_lev = f_old.at(lev);
+void AmrCoreLBM::MakeNewLevelFromScratch(int lev, amrex::Real time, const amrex::BoxArray& ba,
+                                         const amrex::DistributionMapping& dm) {
+    amrex::MultiFab& u_lev = velocity.at(lev);
+    amrex::MultiFab& rho_lev = density.at(lev);
+    amrex::MultiFab& vort_lev = vorticity.at(lev);
+    amrex::MultiFab& force_lev = force.at(lev);
+    amrex::MultiFab& shear_lev = shear.at(lev);
+    amrex::MultiFab& f_new_lev = f_new.at(lev);
+    amrex::MultiFab& f_old_lev = f_old.at(lev);
 
     u_lev.define(ba, dm, AMREX_SPACEDIM, nghost);
     rho_lev.define(ba, dm, 1, nghost);
@@ -1380,26 +1205,22 @@ void AmrCoreLBM::MakeNewLevelFromScratch(int lev, amrex::Real time, const amrex:
     int up = Geom(lev).Domain().length(2) - 1;
     amrex::IntVect hi{right, back, up};
 
-    for (MFIter mfi(f_old_lev, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-        const Box &bx = mfi.growntilebox(nghost);
-        Array4<Real> const &fold = f_old_lev.array(mfi);
-        Array4<Real> const &fnew = f_new_lev.array(mfi);
+    for (MFIter mfi(f_old_lev, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.growntilebox(nghost);
+        Array4<Real> const& fold = f_old_lev.array(mfi);
+        Array4<Real> const& fnew = f_new_lev.array(mfi);
 
-        amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k)
-                           {
+        amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) {
             // init_fluid(i, j, k, fold, fnew);
             init_fluid_channel(i, j, k, fold, fnew, hi, dx); });
     }
 }
 
 /*************************************第3版*ErrorEst***************************************/
-void AmrCoreLBM::ErrorEst(int lev, amrex::TagBoxArray &tags, amrex::Real time, int ngrow)
-{
+void AmrCoreLBM::ErrorEst(int lev, amrex::TagBoxArray& tags, amrex::Real time, int ngrow) {
     // amrex::AllPrint()<<"ErrorEst on " << lev <<std::endl;
 
-    if (lev >= err.size())
-    {
+    if (lev >= err.size()) {
         return;
     }
 
@@ -1410,8 +1231,8 @@ void AmrCoreLBM::ErrorEst(int lev, amrex::TagBoxArray &tags, amrex::Real time, i
     const int tagval = TagBox::SET;
     const int clearval = TagBox::CLEAR;
 
-    const MultiFab &f_old_lev = f_old[lev];
-    const MultiFab &vort_lev = vorticity[lev];
+    const MultiFab& f_old_lev = f_old[lev];
+    const MultiFab& vort_lev = vorticity[lev];
 
     amrex::IntVect lo1 = static_lo[lev];
     amrex::IntVect hi1 = static_hi[lev];
@@ -1422,21 +1243,19 @@ void AmrCoreLBM::ErrorEst(int lev, amrex::TagBoxArray &tags, amrex::Real time, i
     const auto geomdata = geom[lev].data();
     amrex::Gpu::DeviceVector<amrex::RealVect> points_d = convertToDeviceVector(points);
 
-    for (MFIter mfi(f_old_lev, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-        const Box &bx = mfi.growntilebox(0);
+    for (MFIter mfi(f_old_lev, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.growntilebox(0);
         const auto vort = vort_lev.array(mfi);
         const auto tagfab = tags.array(mfi);
 
-        const IntVect &lo = bx.smallEnd();
-        const IntVect &hi = bx.bigEnd();
+        const IntVect& lo = bx.smallEnd();
+        const IntVect& hi = bx.bigEnd();
 
         Real err_value = err[lev];
-        RealVect *points_p = points_d.data();
+        RealVect* points_p = points_d.data();
         const int points_num = particle_num;
 
-        amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k)
-                           {
+        amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) {
             // state_error_2(i, j, k, tagfab, vort, err_value, tagval, clearval, lev, geomdata, lo2, hi2, pos);
             // state_error_3(i, j, k, tagfab, vort, err_value, tagval, clearval, lev, geomdata, lo2, hi2, points_p, points_num);
             // state_error_4(i, j, k, tagfab, vort, err_value, tagval, clearval, lev, geomdata, lo2, hi2, points_p, points_num);
