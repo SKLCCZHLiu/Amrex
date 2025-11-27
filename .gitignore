@@ -30,6 +30,7 @@ Backtrace.*
 *.tgz
 *.tar
 *.zip
+*.dat
 
 # Compile DB (optional keep)
 # compile_commands.json
