@@ -3,8 +3,7 @@
 #include "Kernels.H"
 using namespace amrex;
 
-void LagrangeParticleContainer::PrintParticleParm()
-{
+void LagrangeParticleContainer::PrintParticleParm() {
     amrex::Print() << "╔══════════════════════════════════════════════════════╗" << std::endl;
     amrex::Print() << "║                      IBM PARAMETERS                  ║" << std::endl;
     amrex::Print() << "╚══════════════════════════════════════════════════════╝" << std::endl;
@@ -27,23 +26,19 @@ void LagrangeParticleContainer::PrintParticleParm()
     amrex::Print() << std::endl;
 }
 
-void LagrangeParticleContainer::InitParticle(int lev)
-{
+void LagrangeParticleContainer::InitParticle(int lev) {
     ParticleType p;
     std::array<ParticleReal, PIdx::nattribs> attribs;
-    const Real *delta = Geom(0).CellSize();
+    const Real* delta = Geom(0).CellSize();
 
     Real sita = 0.0, alpha = 0.0;
     int nt = 1;
 
     int num_proc = ParallelDescriptor::NProcs();
 
-    if (ParallelDescriptor::MyProc() == ParallelDescriptor::IOProcessorNumber())
-    {
-        for (int i = 0; i < ns; i++)
-        {
-            if (i == 0)
-            {
+    if (ParallelDescriptor::MyProc() == ParallelDescriptor::IOProcessorNumber()) {
+        for (int i = 0; i < ns; i++) {
+            if (i == 0) {
                 p.id() = ParticleType::NextID();
                 p.cpu() = ParallelDescriptor::MyProc(); // int(p.id()%num_proc);
                 p.pos(0) = (centre[0]) * delta[0];      // TODO:修改为局部坐标系失败
@@ -63,18 +58,15 @@ void LagrangeParticleContainer::InitParticle(int lev)
                 attribs[PIdx::tz] = 0.0;
 
                 std::pair<int, int> key{0, 0};
-                auto &particle_tile = GetParticles(0)[key];
+                auto& particle_tile = GetParticles(0)[key];
 
                 particle_tile.push_back(p);
                 particle_tile.push_back_real(attribs);
-            }
-            else if (i > 0 && i < ns - 1)
-            {
+            } else if (i > 0 && i < ns - 1) {
                 sita = i * PI / (ns - 1);
                 nt = int(nt1 * sin(sita));
 
-                for (int j = 0; j < nt; j++)
-                {
+                for (int j = 0; j < nt; j++) {
                     alpha = 2 * PI / nt * (j + 1);
 
                     p.id() = ParticleType::NextID();
@@ -96,14 +88,12 @@ void LagrangeParticleContainer::InitParticle(int lev)
                     attribs[PIdx::tz] = 0.0;
 
                     std::pair<int, int> key{0, 0};
-                    auto &particle_tile = GetParticles(0)[key];
+                    auto& particle_tile = GetParticles(0)[key];
 
                     particle_tile.push_back(p);
                     particle_tile.push_back_real(attribs);
                 }
-            }
-            else
-            {
+            } else {
                 p.id() = ParticleType::NextID();
                 p.cpu() = ParallelDescriptor::MyProc(); // int(p.id()/num_proc);
                 p.pos(0) = (centre[0]) * delta[0];
@@ -122,7 +112,7 @@ void LagrangeParticleContainer::InitParticle(int lev)
                 attribs[PIdx::tz] = 0.0;
 
                 std::pair<int, int> key{0, 0};
-                auto &particle_tile = GetParticles(0)[key];
+                auto& particle_tile = GetParticles(0)[key];
 
                 particle_tile.push_back(p);
                 particle_tile.push_back_real(attribs);
@@ -132,33 +122,27 @@ void LagrangeParticleContainer::InitParticle(int lev)
     Redistribute();
 }
 
-void LagrangeParticleContainer::InitParticleFromFile(int lev, const std::string object)
-{
+void LagrangeParticleContainer::InitParticleFromFile(int lev, const std::string object) {
     ParticleType p;
     std::array<ParticleReal, PIdx::nattribs> attribs;
-    const Real *delta = Geom(0).CellSize();
+    const Real* delta = Geom(0).CellSize();
 
     int num_proc = ParallelDescriptor::NProcs();
     int num_points;
     amrex::Real factor = 1.0;
 
-    if (ParallelDescriptor::MyProc() == ParallelDescriptor::IOProcessorNumber())
-    {
-        FILE *fp;
+    if (ParallelDescriptor::MyProc() == ParallelDescriptor::IOProcessorNumber()) {
+        FILE* fp;
 
         std::string file = object + ".lpa";
 
-        if ((fp = fopen(file.c_str(), "rb")) == NULL)
-        {
+        if ((fp = fopen(file.c_str(), "rb")) == NULL) {
             amrex::Print() << "error in read stl!" << std::endl;
-        }
-        else
-        {
+        } else {
             printf("file is opened!\n");
             fscanf(fp, "%d", &num_points);
 
-            for (size_t j = 0; j < num_points; j++)
-            {
+            for (size_t j = 0; j < num_points; j++) {
                 amrex::Real pos_x, pos_y, pos_z, area_tmp;
                 amrex::Real dir_x, dir_y, dir_z;
 
@@ -184,7 +168,7 @@ void LagrangeParticleContainer::InitParticleFromFile(int lev, const std::string 
                 attribs[PIdx::tz] = 0.0;
 
                 std::pair<int, int> key{0, 0};
-                auto &particle_tile = GetParticles(0)[key];
+                auto& particle_tile = GetParticles(0)[key];
 
                 particle_tile.push_back(p);
                 particle_tile.push_back_real(attribs);
@@ -196,15 +180,13 @@ void LagrangeParticleContainer::InitParticleFromFile(int lev, const std::string 
     Redistribute();
 }
 
-void LagrangeParticleContainer::MoveParticle(int lev, amrex::Real cur_time)
-{
+void LagrangeParticleContainer::MoveParticle(int lev, amrex::Real cur_time) {
     amrex::RealVect pos_dif, pos_new;
     amrex::RealVect vel_new, angvel_new;
     amrex::RealVect G_dire{0.0, 0.0, -1.0};
     amrex::Real Fgra = (1.0 - rhof / rhop) * Mp * G;
 
-    for (int i = 0; i < AMREX_SPACEDIM; i++)
-    {
+    for (int i = 0; i < AMREX_SPACEDIM; i++) {
         // F_lub[i] = 0.0;
 
         vel_new[i] = (1.0 + rhof / rhop) * vel[i] - (rhof / rhop) * vel_old[i] + (F_tot[i] + Fgra * G_dire[i] + F_lub[i]) / Mp * dt_min;
@@ -230,48 +212,42 @@ void LagrangeParticleContainer::MoveParticle(int lev, amrex::Real cur_time)
 
     const Real delta = Geom(lev).CellSize()[0];
 
-    for (MyParIter pti(*this, lev); pti.isValid(); ++pti)
-    {
-        auto &particles = pti.GetArrayOfStructs();
+    for (MyParIter pti(*this, lev); pti.isValid(); ++pti) {
+        auto& particles = pti.GetArrayOfStructs();
         auto p_ptr = particles().data();
         const long n = pti.numParticles();
 
-        auto &attribs = pti.GetAttribs();
+        auto& attribs = pti.GetAttribs();
         auto xlocal = attribs[PIdx::xlocal].data();
         auto ylocal = attribs[PIdx::ylocal].data();
         auto zlocal = attribs[PIdx::zlocal].data();
 
-        const RealVect &centre_pos = centre;
+        const RealVect& centre_pos = centre;
 
-        amrex::ParallelFor(n, [=] AMREX_GPU_DEVICE(int i) noexcept
-                           {
+        amrex::ParallelFor(n, [=] AMREX_GPU_DEVICE(int i) noexcept {
             p_ptr[i].pos(0) = centre_pos[0] * dx_0 + xlocal[i];
             p_ptr[i].pos(1) = centre_pos[1] * dx_0 + ylocal[i];
             p_ptr[i].pos(2) = centre_pos[2] * dx_0 + zlocal[i]; });
     }
 }
 
-amrex::RealVect LagrangeParticleContainer::ReturnCentre()
-{
+amrex::RealVect LagrangeParticleContainer::ReturnCentre() {
     return centre;
 }
 
-amrex::RealVect LagrangeParticleContainer::ReturnVelocity()
-{
+amrex::RealVect LagrangeParticleContainer::ReturnVelocity() {
     return vel;
 }
 
-void LagrangeParticleContainer::InterpForce(int lev, amrex::MultiFab &rho_lev, amrex::MultiFab &u_lev, amrex::MultiFab &force_lev)
-{
+void LagrangeParticleContainer::InterpForce(int lev, amrex::MultiFab& rho_lev, amrex::MultiFab& u_lev, amrex::MultiFab& force_lev) {
     const Real delta = Geom(lev).CellSize()[0];
 
-    for (MyParIter pti(*this, lev); pti.isValid(); ++pti)
-    {
-        auto &particles = pti.GetArrayOfStructs();
+    for (MyParIter pti(*this, lev); pti.isValid(); ++pti) {
+        auto& particles = pti.GetArrayOfStructs();
         auto p_ptr = particles().data();
         const long n = pti.numParticles();
 
-        auto &attribs = pti.GetAttribs();
+        auto& attribs = pti.GetAttribs();
         auto fx = attribs[PIdx::fx].data();
         auto fy = attribs[PIdx::fy].data();
         auto fz = attribs[PIdx::fz].data();
@@ -283,38 +259,31 @@ void LagrangeParticleContainer::InterpForce(int lev, amrex::MultiFab &rho_lev, a
         auto zlocal = attribs[PIdx::zlocal].data();
         auto area = attribs[PIdx::area].data();
 
-        const Array4<Real> &u = u_lev.array(pti);
-        const Array4<Real> &rho = rho_lev.array(pti);
-        const Array4<Real> &Ft = force_lev.array(pti);
+        const Array4<Real>& u = u_lev.array(pti);
+        const Array4<Real>& rho = rho_lev.array(pti);
+        const Array4<Real>& Ft = force_lev.array(pti);
 
-        const RealVect &uc = vel;
-        const RealVect &wc = angvel;
-        const RealVect &pos = centre;
+        const RealVect& uc = vel;
+        const RealVect& wc = angvel;
+        const RealVect& pos = centre;
 
-        amrex::ParallelFor(n, [=] AMREX_GPU_DEVICE(int i) noexcept
-                           { force_interp_extrap(p_ptr[i], fx[i], fy[i], fz[i], tx[i], ty[i], tz[i], xlocal[i], ylocal[i], zlocal[i], area[i],
-                                                 u, rho, Ft, delta, uc, wc, pos); });
+        amrex::ParallelFor(n, [=] AMREX_GPU_DEVICE(int i) noexcept { force_interp_extrap(p_ptr[i], fx[i], fy[i], fz[i], tx[i], ty[i], tz[i], xlocal[i], ylocal[i], zlocal[i], area[i],
+                                                                                         u, rho, Ft, delta, uc, wc, pos); });
     }
 
     // 统计转矩等颗粒受力
     using SPType = typename LagrangeParticleContainer::SuperParticleType;
 
-    auto fx = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType &p) -> ParticleReal
-                               { return p.rdata(PIdx::fx); });
+    auto fx = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType& p) -> ParticleReal { return p.rdata(PIdx::fx); });
 
-    auto fy = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType &p) -> ParticleReal
-                               { return p.rdata(PIdx::fy); });
+    auto fy = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType& p) -> ParticleReal { return p.rdata(PIdx::fy); });
 
-    auto fz = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType &p) -> ParticleReal
-                               { return p.rdata(PIdx::fz); });
+    auto fz = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType& p) -> ParticleReal { return p.rdata(PIdx::fz); });
 
-    auto tx = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType &p) -> ParticleReal
-                               { return p.rdata(PIdx::tx); });
+    auto tx = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType& p) -> ParticleReal { return p.rdata(PIdx::tx); });
 
-    auto ty = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType &p) -> ParticleReal
-                               { return p.rdata(PIdx::ty); });
-    auto tz = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType &p) -> ParticleReal
-                               { return p.rdata(PIdx::tz); });
+    auto ty = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType& p) -> ParticleReal { return p.rdata(PIdx::ty); });
+    auto tz = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType& p) -> ParticleReal { return p.rdata(PIdx::tz); });
 
     ParallelDescriptor::ReduceRealSum(fx);
     ParallelDescriptor::ReduceRealSum(fy);
@@ -334,17 +303,15 @@ void LagrangeParticleContainer::InterpForce(int lev, amrex::MultiFab &rho_lev, a
     F_lub[2] = 0.0;
 }
 
-void LagrangeParticleContainer::InterpForceWallModel(int lev, amrex::MultiFab &rho_lev, amrex::MultiFab &u_lev, amrex::MultiFab &force_lev)
-{
+void LagrangeParticleContainer::InterpForceWallModel(int lev, amrex::MultiFab& rho_lev, amrex::MultiFab& u_lev, amrex::MultiFab& force_lev) {
     const Real delta = Geom(lev).CellSize()[0];
 
-    for (MyParIter pti(*this, lev); pti.isValid(); ++pti)
-    {
-        auto &particles = pti.GetArrayOfStructs();
+    for (MyParIter pti(*this, lev); pti.isValid(); ++pti) {
+        auto& particles = pti.GetArrayOfStructs();
         auto p_ptr = particles().data();
         const long n = pti.numParticles();
 
-        auto &attribs = pti.GetAttribs();
+        auto& attribs = pti.GetAttribs();
         auto fx = attribs[PIdx::fx].data();
         auto fy = attribs[PIdx::fy].data();
         auto fz = attribs[PIdx::fz].data();
@@ -356,38 +323,31 @@ void LagrangeParticleContainer::InterpForceWallModel(int lev, amrex::MultiFab &r
         auto zlocal = attribs[PIdx::zlocal].data();
         auto area = attribs[PIdx::area].data();
 
-        const Array4<Real> &u = u_lev.array(pti);
-        const Array4<Real> &rho = rho_lev.array(pti);
-        const Array4<Real> &Ft = force_lev.array(pti);
+        const Array4<Real>& u = u_lev.array(pti);
+        const Array4<Real>& rho = rho_lev.array(pti);
+        const Array4<Real>& Ft = force_lev.array(pti);
 
-        const RealVect &uc = vel;
-        const RealVect &wc = angvel;
-        const RealVect &pos = centre;
+        const RealVect& uc = vel;
+        const RealVect& wc = angvel;
+        const RealVect& pos = centre;
 
-        amrex::ParallelFor(n, [=] AMREX_GPU_DEVICE(int i) noexcept
-                           { force_wall_model(p_ptr[i], fx[i], fy[i], fz[i], tx[i], ty[i], tz[i], xlocal[i], ylocal[i], zlocal[i], area[i],
-                                              u, rho, Ft, delta, uc, wc, pos); });
+        amrex::ParallelFor(n, [=] AMREX_GPU_DEVICE(int i) noexcept { force_wall_model(p_ptr[i], fx[i], fy[i], fz[i], tx[i], ty[i], tz[i], xlocal[i], ylocal[i], zlocal[i], area[i],
+                                                                                      u, rho, Ft, delta, uc, wc, pos); });
     }
 
     // 统计转矩等颗粒受力
     using SPType = typename LagrangeParticleContainer::SuperParticleType;
 
-    auto fx = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType &p) -> ParticleReal
-                               { return p.rdata(PIdx::fx); });
+    auto fx = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType& p) -> ParticleReal { return p.rdata(PIdx::fx); });
 
-    auto fy = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType &p) -> ParticleReal
-                               { return p.rdata(PIdx::fy); });
+    auto fy = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType& p) -> ParticleReal { return p.rdata(PIdx::fy); });
 
-    auto fz = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType &p) -> ParticleReal
-                               { return p.rdata(PIdx::fz); });
+    auto fz = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType& p) -> ParticleReal { return p.rdata(PIdx::fz); });
 
-    auto tx = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType &p) -> ParticleReal
-                               { return p.rdata(PIdx::tx); });
+    auto tx = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType& p) -> ParticleReal { return p.rdata(PIdx::tx); });
 
-    auto ty = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType &p) -> ParticleReal
-                               { return p.rdata(PIdx::ty); });
-    auto tz = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType &p) -> ParticleReal
-                               { return p.rdata(PIdx::tz); });
+    auto ty = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType& p) -> ParticleReal { return p.rdata(PIdx::ty); });
+    auto tz = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType& p) -> ParticleReal { return p.rdata(PIdx::tz); });
 
     ParallelDescriptor::ReduceRealSum(fx);
     ParallelDescriptor::ReduceRealSum(fy);
@@ -407,8 +367,7 @@ void LagrangeParticleContainer::InterpForceWallModel(int lev, amrex::MultiFab &r
     F_lub[2] = 0.0;
 }
 
-void LagrangeParticleContainer::CollideParticle(const std::unique_ptr<LagrangeParticleContainer> &p2)
-{
+void LagrangeParticleContainer::CollideParticle(const std::unique_ptr<LagrangeParticleContainer>& p2) {
     amrex::RealVect Fpw_lub = {0.0, 0.0, 0.0};
     amrex::RealVect Fp1_lub = {0.0, 0.0, 0.0};
     amrex::RealVect Fp2_lub = {0.0, 0.0, 0.0};
@@ -428,16 +387,11 @@ void LagrangeParticleContainer::CollideParticle(const std::unique_ptr<LagrangePa
     amrex::Real npp1 = (lc - R * 2.0 - safe) / safe;
     amrex::Real npp2 = (R * 2.0 - lc) / safe;
 
-    if (lc <= (2 * R))
-    {
+    if (lc <= (2 * R)) {
         Ftmp = std::fabs(Fgra / Epp1) * npp1 * npp1 + std::fabs(Fgra / Epp2) * npp2;
-    }
-    else if (lc <= (2 * R + safe))
-    {
+    } else if (lc <= (2 * R + safe)) {
         Ftmp = std::fabs(Fgra / Epp1) * npp1 * npp1;
-    }
-    else
-    {
+    } else {
         Ftmp = 0.0;
     }
 
@@ -456,8 +410,7 @@ void LagrangeParticleContainer::CollideParticle(const std::unique_ptr<LagrangePa
     p2->SetLubVal(Fp2_lub); // 得有一个单独清零的地方
 }
 
-void LagrangeParticleContainer::CollideWall()
-{
+void LagrangeParticleContainer::CollideWall() {
     amrex::RealVect Fpw_lub = {0.0, 0.0, 0.0};
 
     amrex::RealVect pos_p1 = this->ReturnCentre();
@@ -469,8 +422,7 @@ void LagrangeParticleContainer::CollideWall()
     amrex::Real Fgra = (1.0 - rhof / rhop) * Mp * G * dx_min;
 
     // 左边界
-    if (pos_p1[0] <= (R + safe + 1.0))
-    {
+    if (pos_p1[0] <= (R + safe + 1.0)) {
         xc_fict = 1.0 - R;
         lxc = pos_p1[0] - xc_fict;
         lc = std::abs(lxc);
@@ -478,24 +430,18 @@ void LagrangeParticleContainer::CollideWall()
         npw1 = (lc - R * 2.0 - safe) / safe;
         npw2 = (R * 2.0 - lc) / safe;
 
-        if (lc <= (2 * R))
-        {
+        if (lc <= (2 * R)) {
             Ftmp = std::fabs(Fgra / Epw1) * npw1 * npw1 + std::fabs(Fgra / Epw2) * npw2;
-        }
-        else if (lc <= (2 * R + safe))
-        {
+        } else if (lc <= (2 * R + safe)) {
             Ftmp = std::fabs(Fgra / Epw1) * npw1 * npw1;
-        }
-        else
-        {
+        } else {
             Ftmp = 0.0;
         }
 
         Fpw_lub[0] += Ftmp * lxc / lc;
     }
     // 右边界
-    if (pos_p1[0] >= (NX - R - safe - 1.0))
-    {
+    if (pos_p1[0] >= (NX - R - safe - 1.0)) {
         xc_fict = NX + R - 1.0;
         lxc = pos_p1[0] - xc_fict;
         lc = std::abs(lxc);
@@ -503,16 +449,11 @@ void LagrangeParticleContainer::CollideWall()
         npw1 = (lc - R * 2.0 - safe) / safe;
         npw2 = (R * 2.0 - lc) / safe;
 
-        if (lc <= (2 * R))
-        {
+        if (lc <= (2 * R)) {
             Ftmp = std::fabs(Fgra / Epw1) * npw1 * npw1 + std::fabs(Fgra / Epw2) * npw2;
-        }
-        else if (lc <= (2 * R + safe))
-        {
+        } else if (lc <= (2 * R + safe)) {
             Ftmp = std::fabs(Fgra / Epw1) * npw1 * npw1;
-        }
-        else
-        {
+        } else {
             Ftmp = 0.0;
         }
 
@@ -520,8 +461,7 @@ void LagrangeParticleContainer::CollideWall()
     }
 
     // 后边界
-    if (pos_p1[1] <= (R + safe + 1.0))
-    {
+    if (pos_p1[1] <= (R + safe + 1.0)) {
         xc_fict = 1.0 - R; // 这里到底是多少
         lxc = pos_p1[1] - xc_fict;
         lc = std::abs(lxc);
@@ -529,16 +469,11 @@ void LagrangeParticleContainer::CollideWall()
         npw1 = (lc - R * 2.0 - safe) / safe;
         npw2 = (R * 2.0 - lc) / safe;
 
-        if (lc <= (2 * R))
-        {
+        if (lc <= (2 * R)) {
             Ftmp = std::fabs(Fgra / Epw1) * npw1 * npw1 + std::fabs(Fgra / Epw2) * npw2;
-        }
-        else if (lc <= (2 * R + safe))
-        {
+        } else if (lc <= (2 * R + safe)) {
             Ftmp = std::fabs(Fgra / Epw1) * npw1 * npw1;
-        }
-        else
-        {
+        } else {
             Ftmp = 0.0;
         }
 
@@ -546,8 +481,7 @@ void LagrangeParticleContainer::CollideWall()
     }
 
     // 前边界
-    if (pos_p1[1] >= (NY - R - safe - 1.0))
-    {
+    if (pos_p1[1] >= (NY - R - safe - 1.0)) {
         xc_fict = NY + R - 1.0; // 这里到底是多少
         lxc = pos_p1[1] - xc_fict;
         lc = std::abs(lxc);
@@ -555,16 +489,11 @@ void LagrangeParticleContainer::CollideWall()
         npw1 = (lc - R * 2.0 - safe) / safe;
         npw2 = (R * 2.0 - lc) / safe;
 
-        if (lc <= (2 * R))
-        {
+        if (lc <= (2 * R)) {
             Ftmp = std::fabs(Fgra / Epw1) * npw1 * npw1 + std::fabs(Fgra / Epw2) * npw2;
-        }
-        else if (lc <= (2 * R + safe))
-        {
+        } else if (lc <= (2 * R + safe)) {
             Ftmp = std::fabs(Fgra / Epw1) * npw1 * npw1;
-        }
-        else
-        {
+        } else {
             Ftmp = 0.0;
         }
 
@@ -572,8 +501,7 @@ void LagrangeParticleContainer::CollideWall()
     }
 
     // 下边界
-    if (pos_p1[2] <= (R + safe + 1.0))
-    {
+    if (pos_p1[2] <= (R + safe + 1.0)) {
         xc_fict = 1.0 - R; // 这里到底是多少
         lxc = pos_p1[2] - xc_fict;
         lc = std::abs(lxc);
@@ -581,16 +509,11 @@ void LagrangeParticleContainer::CollideWall()
         npw1 = (lc - R * 2.0 - safe) / safe;
         npw2 = (R * 2.0 - lc) / safe;
 
-        if (lc <= (2 * R))
-        {
+        if (lc <= (2 * R)) {
             Ftmp = std::fabs(Fgra / Epw1) * npw1 * npw1 + std::fabs(Fgra / Epw2) * npw2;
-        }
-        else if (lc <= (2 * R + safe))
-        {
+        } else if (lc <= (2 * R + safe)) {
             Ftmp = std::fabs(Fgra / Epw1) * npw1 * npw1;
-        }
-        else
-        {
+        } else {
             Ftmp = 0.0;
         }
 
@@ -598,8 +521,7 @@ void LagrangeParticleContainer::CollideWall()
     }
 
     // 上边界
-    if (pos_p1[2] >= (NZ - R - safe - 1.0))
-    {
+    if (pos_p1[2] >= (NZ - R - safe - 1.0)) {
         xc_fict = NZ + R - 1.0; // 这里到底是多少
         lxc = pos_p1[2] - xc_fict;
         lc = std::abs(lxc);
@@ -607,16 +529,11 @@ void LagrangeParticleContainer::CollideWall()
         npw1 = (lc - R * 2.0 - safe) / safe;
         npw2 = (R * 2.0 - lc) / safe;
 
-        if (lc <= (2 * R))
-        {
+        if (lc <= (2 * R)) {
             Ftmp = std::fabs(Fgra / Epw1) * npw1 * npw1 + std::fabs(Fgra / Epw2) * npw2;
-        }
-        else if (lc <= (2 * R + safe))
-        {
+        } else if (lc <= (2 * R + safe)) {
             Ftmp = std::fabs(Fgra / Epw1) * npw1 * npw1;
-        }
-        else
-        {
+        } else {
             Ftmp = 0.0;
         }
 
@@ -628,24 +545,20 @@ void LagrangeParticleContainer::CollideWall()
     F_lub[2] += Fpw_lub[2];
 }
 
-void LagrangeParticleContainer::SetLubVal(amrex::RealVect &force_lub)
-{
+void LagrangeParticleContainer::SetLubVal(amrex::RealVect& force_lub) {
     F_lub[0] += force_lub[0];
     F_lub[1] += force_lub[1];
     F_lub[2] += force_lub[2];
 }
 
-void LagrangeParticleContainer::SaveVelocity(int lev, int step)
-{
+void LagrangeParticleContainer::SaveVelocity(int lev, int step) {
     amrex::Real uz = vel[2] * U0;
 
-    if (ParallelDescriptor::MyProc() == ParallelDescriptor::IOProcessorNumber())
-    {
+    if (ParallelDescriptor::MyProc() == ParallelDescriptor::IOProcessorNumber()) {
         std::string filename = "data/vel_" + std::to_string(id) + ".dat";
         std::ofstream file(filename, std::ios::app);
 
-        if (!file.is_open())
-        {
+        if (!file.is_open()) {
             std::cerr << "Cannot open the file: " << filename << std::endl;
             std::exit(1); // 错误退出
         }
@@ -655,19 +568,16 @@ void LagrangeParticleContainer::SaveVelocity(int lev, int step)
     }
 }
 
-void LagrangeParticleContainer::SavePosition(int lev, int step)
-{
+void LagrangeParticleContainer::SavePosition(int lev, int step) {
     amrex::Real pos_x = centre[0];
     amrex::Real pos_y = centre[1];
     amrex::Real pos_z = centre[2];
 
-    if (ParallelDescriptor::MyProc() == ParallelDescriptor::IOProcessorNumber())
-    {
+    if (ParallelDescriptor::MyProc() == ParallelDescriptor::IOProcessorNumber()) {
         std::string filename = "data/pos_" + std::to_string(id) + ".dat";
         std::ofstream file(filename, std::ios::app);
 
-        if (!file.is_open())
-        {
+        if (!file.is_open()) {
             std::cerr << "Cannot open the file: " << filename << std::endl;
             std::exit(1); // 错误退出
         }
@@ -677,18 +587,14 @@ void LagrangeParticleContainer::SavePosition(int lev, int step)
     }
 }
 
-void LagrangeParticleContainer::SaveFxy(int lev, int step)
-{
+void LagrangeParticleContainer::SaveFxy(int lev, int step) {
     using SPType = typename LagrangeParticleContainer::SuperParticleType;
 
-    auto fx = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType &p) -> ParticleReal
-                               { return p.rdata(PIdx::fx); });
+    auto fx = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType& p) -> ParticleReal { return p.rdata(PIdx::fx); });
 
-    auto fy = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType &p) -> ParticleReal
-                               { return p.rdata(PIdx::fy); });
+    auto fy = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType& p) -> ParticleReal { return p.rdata(PIdx::fy); });
 
-    auto fz = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType &p) -> ParticleReal
-                               { return p.rdata(PIdx::fz); });
+    auto fz = amrex::ReduceSum(*this, [=] AMREX_GPU_HOST_DEVICE(const SPType& p) -> ParticleReal { return p.rdata(PIdx::fz); });
 
     ParallelDescriptor::ReduceRealSum(fx);
     ParallelDescriptor::ReduceRealSum(fy);
@@ -712,13 +618,11 @@ void LagrangeParticleContainer::SaveFxy(int lev, int step)
     //     fclose(file);
     // }
 
-    if (ParallelDescriptor::MyProc() == ParallelDescriptor::IOProcessorNumber())
-    {
+    if (ParallelDescriptor::MyProc() == ParallelDescriptor::IOProcessorNumber()) {
         std::string filename = "data/CdCl_" + std::to_string(id) + ".dat";
-        std::ofstream file(filename, std::ios::app);
+        std::ofstream file(filename, step == 1 ? std::ios::trunc : std::ios::app);
 
-        if (!file.is_open())
-        {
+        if (!file.is_open()) {
             std::cerr << "Cannot open the file: " << filename << std::endl;
             std::exit(1); // 错误退出
         }
@@ -728,10 +632,9 @@ void LagrangeParticleContainer::SaveFxy(int lev, int step)
     }
 }
 
-void LagrangeParticleContainer::WriteParticle(int step)
-{
+void LagrangeParticleContainer::WriteParticle(int step) {
     std::string filename = "particle_" + std::to_string(id);
     filename += '_';
-    const std::string &pltfile = amrex::Concatenate(filename, step, 5);
+    const std::string& pltfile = amrex::Concatenate(filename, step, 5);
     WriteAsciiFile(pltfile); // 这个没啥用，只能用来调试
 }

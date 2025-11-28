@@ -1,0 +1,80 @@
+{
+    // clangd 方案 workspace
+    "folders": [
+        {
+            "name": "workspace_root",
+            "path": "."
+        }
+    ],
+    "settings": {
+        // 统一排除海量结果/输出目录以加速 IntelliSense
+        "files.watcherExclude": {
+            "**/.git/**": false,
+            "**/tmp_build_dir/**": true,
+            "**/case_*/**": true,
+            "**/plt*/**": true,
+            "**/Level_*/**": true,
+            "**/*.ex": true,
+            "**/*.log": true,
+            "**/*.zip": true
+        },
+        "search.exclude": {
+            // 取消对 .git 的搜索排除，允许在全局搜索中匹配到仓库内部文件（谨慎：搜索结果可能很多）
+            "**/.git": true,
+            "**/tmp_build_dir": true,
+            "**/case_*": true,
+            "**/plt*": true,
+            "**/Level_*": true,
+            "**/*.ex": true,
+            "**/*.log": true,
+            "**/*.zip": true
+        },
+        // Explorer 显式允许显示 .git（确保不被其它层级设置覆盖）
+        "files.exclude": {
+            "**/.git": false
+        },
+        "editor.formatOnSaveMode": "modificationsIfAvailable",
+        "clangd.path": "/home/share/huazkjdxmrsgjzdsyshi/home/lijing/wuyuchen/mambaforge3/bin/clangd",
+        "clangd.arguments": [
+            "--background-index",
+            "--pch-storage=memory",
+            "--all-scopes-completion",
+            "--completion-style=detailed",
+            "--header-insertion=never",
+            "--enable-config",
+            "--query-driver=/home/HPCBase/compilers/gcc/*/bin/g++;/home/HPCBase/compilers/gcc/*/bin/gcc;/usr/bin/g++;/usr/bin/gcc;/usr/local/cuda/bin/*"
+        ],
+        "[cpp]": {},
+        "[c]": {},
+        "[cuda-cpp]": {},
+        "files.associations": {
+            "*.H": "cpp",
+            "*.cu": "cuda-cpp",
+            "*.cuh": "cuda-cpp",
+            "*.mcr": "shellscript",
+            "inputs": "ini",
+            "__hash_table": "cpp",
+            "__split_buffer": "cpp",
+            "__tree": "cpp",
+            "atomic": "cpp",
+            "deque": "cpp",
+            "filesystem": "cpp",
+            "ios": "cpp",
+            "list": "cpp",
+            "map": "cpp",
+            "set": "cpp",
+            "string": "cpp",
+            "system_error": "cpp",
+            "unordered_map": "cpp",
+            "unordered_set": "cpp",
+            "vector": "cpp",
+            "random": "cpp",
+            "__locale": "cpp",
+            "__string": "cpp",
+            "regex": "cpp",
+            "string_view": "cpp"
+        },
+        "Codegeex.RepoIndex": true,
+        "Codegeex.Chat.fontSize": 15
+    }
+}

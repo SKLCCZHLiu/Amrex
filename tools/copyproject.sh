@@ -8,10 +8,10 @@ set -Eeuo pipefail
 # ===== 配置区域（请按需修改） =====
 # 源目录（默认：脚本所在目录）
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
-SOURCE_DIR="/home/huazkjdxmrsgjzdsyshi/whcs-share18/caiyimin/learnamerx/Amrex/projects/Cylinder2D_ori"   # <--- 修改为你希望复制的源目录绝对路径
+SOURCE_DIR="/home/huazkjdxmrsgjzdsyshi/whcs-share18/caiyimin/learnamerx/Amrex/projects/Cylindertest/Cylinder2D_DF"   # <--- 修改为你希望复制的源目录绝对路径
 
 # 目标目录（最终落地目录名，可不存在，会被创建）
-DEST_DIR="/home/huazkjdxmrsgjzdsyshi/whcs-share18/caiyimin/learnamerx/Amrex/projects/Cylinder2D_noBTDF"  # <--- 修改为你希望复制到的目标目录绝对路径
+DEST_DIR="/home/huazkjdxmrsgjzdsyshi/whcs-share18/caiyimin/learnamerx/Amrex/projects/Cylindertest/Cylinder2D_lev2"  # <--- 修改为你希望复制到的目标目录绝对路径
 
 # 注意：该脚本会实际复制（无 dry-run/删除开关）；如需试运行建议临时手动在 rsync 命令上添加 -n。
 # ===== 配置结束 =====
